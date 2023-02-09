@@ -18,14 +18,15 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
+        <Text style={styles.text}>
+          I have read and agreed with the terms and conditions
+        </Text>
         <CheckBox
+          style={{marginLeft: 10, marginTop:8}}
           value={agree}
           onValueChange={() => setAgree(!agree)}
           color={agree ? "#4630EB" : undefined}
         />
-        <Text style={styles.text}>
-          I have read and agreed with the terms and conditions
-        </Text>
       </View>
       <TouchableOpacity style={styles.button} onPress={handlePress}>
         <Text>Submit</Text>
@@ -52,7 +53,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   text: {
-    lineHeight: 30,
-    marginLeft: 10,
+    lineHeight: 30
   },
 });
