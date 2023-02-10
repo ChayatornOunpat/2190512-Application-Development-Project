@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text, Button, Platform, TouchableOpacity } from "react-native";
 import CheckBox from "expo-checkbox";
+import { firebase } from "./firebase-config";
 
 export default function App() {
   const [agree, setAgree] = useState(false);
@@ -32,7 +33,7 @@ export default function App() {
         <Text>Submit</Text>
       </TouchableOpacity>
     </View>
-  );
+ );
 }
 
 const styles = StyleSheet.create({
