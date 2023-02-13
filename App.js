@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, Text, Button, Platform, TouchableOpacity } from "react-native";
 import CheckBox from "expo-checkbox";
-import { firebase } from "./firebase-config";
+import { db } from "./firebase-config";
 
 export default function App() {
   const [law, setLaw] = useState(false);
@@ -179,7 +179,7 @@ export default function App() {
       </View>
       <View style={styles.wrapper}>
         <Text style={styles.text}>
-          สภาพยางหน้า: ความลึก> 5 มม
+          สภาพยางหน้า: ความลึก > 5 มม
         </Text>
         <CheckBox
           style={{marginLeft: 10, marginTop:8}}
@@ -190,7 +190,7 @@ export default function App() {
       </View>
       <View style={styles.wrapper}>
         <Text style={styles.text}>
-          สภาพยางเพลาที่ 1: ความลึก> 3 มม.
+          สภาพยางเพลาที่ 1: ความลึก > 3 มม.
         </Text>
         <CheckBox
           style={{marginLeft: 10, marginTop:8}}
@@ -201,7 +201,7 @@ export default function App() {
       </View>
       <View style={styles.wrapper}>
         <Text style={styles.text}>
-          สภาพยางเพลาที่ 2: ความลึก> 3 มม.
+          สภาพยางเพลาที่ 2: ความลึก > 3 มม.
         </Text>
         <CheckBox
           style={{marginLeft: 10, marginTop:8}}
@@ -212,7 +212,7 @@ export default function App() {
       </View>
       <View style={styles.wrapper}>
         <Text style={styles.text}>
-          สภาพยางเพลาที่ 3: ความลึก> 3 มม.
+          สภาพยางเพลาที่ 3: ความลึก > 3 มม.
         </Text>
         <CheckBox
           style={{marginLeft: 10, marginTop:8}}
@@ -223,7 +223,7 @@ export default function App() {
       </View>
       <View style={styles.wrapper}>
         <Text style={styles.text}>
-          สภาพยางเพลาที่ 4: ความลึก> 3 มม.
+          สภาพยางเพลาที่ 4: ความลึก > 3 มม.
         </Text>
         <CheckBox
           style={{marginLeft: 10, marginTop:8}}
