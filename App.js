@@ -4,10 +4,11 @@ import {
     View,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
 } from "react-native";
 import CheckBox from "expo-checkbox";
-import {db} from "./firebase-config";
+import {storageRef, ref, getMetadata, uploadString} from "./firebase-config";
 
 export default function App() {
     const [law, setLaw] = useState(false);
@@ -38,14 +39,73 @@ export default function App() {
     const [structuralintegrity, setStructuralintegrity] = useState(false);
     const [fastener, setFastener] = useState(false);
     const [cover, setCover] = useState(false);
+    const [plate, setPlate] = useState('');
 
     function handlePress() {
-        if (law) {
-            alert("submitted");
-        } else {
-            alert("not submitted");
+        let data = {
+            'law': law,
+            'tax': tax,
+            'insurance': insurance,
+            'passport': passport,
+            'headlight': headlight,
+            'turnlight': turnlight,
+            'toplight': toplight,
+            'lubeoil': lubeoil,
+            'tankcoolant': tankcoolant,
+            'percipitation': percipitation,
+            'opsname': opsname,
+            'doormirror': doormirror,
+            'tire': tire,
+            'tirehub': tirehub,
+            'tirehub2': tirehub2,
+            'tirehub3': tirehub3,
+            'tirehub4': tirehub4,
+            'spare': spare,
+            'pressure': pressure,
+            'extinguisher': extinguisher,
+            'tiresupport': tiresupport,
+            'cone': cone,
+            'breaklight': breaklight,
+            'reverselight': reverselight,
+            'backturnlight': backturnlight,
+            'structuralintegrity': structuralintegrity,
+            'fastener': fastener,
+            'cover': cover,
+            'plate': plate
         }
+        // Convert the data object to a JSON string
+        let jsonData = JSON.stringify(data);
+
+        // Get the current date as a string (e.g. "2023-03-15")
+        let dateStr = new Date().toISOString().slice(0, 10);
+
+        // Create a file reference for the current date
+        let dataRef = ref(storageRef, `${dateStr}.json`);
+
+        // Check if a file with this name already exists
+        getMetadata(dataRef)
+            .then((metadata) => {
+                // If the file exists, overwrite it with the new data
+                uploadString(dataRef, jsonData)
+                    .then(() => {
+                        alert('Data uploaded successfully!');
+                    })
+                    .catch((error) => {
+                        alert('Error uploading data:', error);
+                    });
+            })
+            .catch((error) => {
+                // If the file does not exist, create a new file with the data
+                uploadString(dataRef, jsonData)
+                    .then(() => {
+                        alert('Data uploaded successfully!');
+                    })
+                    .catch((error) => {
+                        alert('Error uploading data:', error);
+                    });
+            });
     }
+
 
     return (
         <ScrollView style={styles.container}>
@@ -299,6 +359,13 @@ export default function App() {
                     value={cover}
                     onValueChange={() => setCover(!cover)}
                     color={cover ? "#4630EB" : undefined}
+                />
+            </View>
+            <View style={styles.wrapper}>
+                <TextInput
+                    value={plate}
+                    onChangeText={setPlate}
+                    placeholder="ทะเบียนรถ"
                 />
             </View>
             <View style={styles.wrapper}>
