@@ -8,7 +8,13 @@ import {
     TouchableOpacity,
 } from "react-native";
 import CheckBox from "expo-checkbox";
-import {storageRef, ref, getMetadata, uploadString} from "./firebase-config";
+import {storageRef, storage} from "./firebase-config";
+import {
+    getMetadata,
+    uploadString,
+    getDownloadURL,
+    ref,
+} from "firebase/storage";
 
 export default function App() {
     const [law, setLaw] = useState(false);
@@ -40,6 +46,38 @@ export default function App() {
     const [fastener, setFastener] = useState(false);
     const [cover, setCover] = useState(false);
     const [plate, setPlate] = useState('');
+
+    const handleDl = async () => {
+        let dateStr = new Date().toISOString().slice(0, 10);
+        let fileRef = ref(storage, `${dateStr}.json`);
+
+        try {
+            const fileSnapshot = await getDownloadURL(fileRef);
+            const fileURL = fileSnapshot.toString();
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', fileURL);
+            xhr.responseType = 'blob';
+
+            xhr.onload = () => {
+                const blob = xhr.response;
+                const reader = new FileReader();
+                reader.readAsText(blob);
+                reader.onloadend = () => {
+                    const data = JSON.parse(reader.result);
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            console.log(`${key} : ${data[key]}`)
+                        }
+                    }
+                };
+            };
+
+            xhr.send();
+        } catch (error) {
+            alert(error);
+        }
+    }
 
     function handlePress() {
         let data = {
@@ -371,6 +409,11 @@ export default function App() {
             <View style={styles.wrapper}>
                 <TouchableOpacity style={styles.button} onPress={handlePress}>
                     <Text>Submit</Text>
+                </TouchableOpacity>
+            </View>
+            <View style={styles.wrapper}>
+                <TouchableOpacity style={styles.button} onPress={handleDl}>
+                    <Text>Download</Text>
                 </TouchableOpacity>
             </View>
         </ScrollView>
