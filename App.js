@@ -49,7 +49,7 @@ export default function App() {
 
     const handleDownloadPress = async () => {
         let dateStr = new Date().toISOString().slice(0, 10);
-        let fileRef = ref(storage, `${dateStr}.json`);
+        let fileRef = ref(storage, `${plate}_${dateStr}.json`);
 
         try {
             const fileSnapshot = await getDownloadURL(fileRef);
@@ -118,7 +118,7 @@ export default function App() {
         let dateStr = new Date().toISOString().slice(0, 10);
 
         // Create a file reference for the current date
-        let dataRef = ref(storageRef, `${dateStr}.json`);
+        let dataRef = ref(storageRef, `${plate}_${dateStr}.json`);
 
         // Check if a file with this name already exists
         getMetadata(dataRef)
