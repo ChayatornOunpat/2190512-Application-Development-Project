@@ -47,7 +47,7 @@ export default function App() {
     const [cover, setCover] = useState(false);
     const [plate, setPlate] = useState('');
 
-    const handleDl = async () => {
+    const handleDownloadPress = async () => {
         let dateStr = new Date().toISOString().slice(0, 10);
         let fileRef = ref(storage, `${dateStr}.json`);
 
@@ -79,7 +79,7 @@ export default function App() {
         }
     }
 
-    function handlePress() {
+    function handleSubmitPress() {
         let data = {
             'law': law,
             'tax': tax,
@@ -407,12 +407,12 @@ export default function App() {
                 />
             </View>
             <View style={styles.wrapper}>
-                <TouchableOpacity style={styles.button} onPress={handlePress}>
+                <TouchableOpacity style={styles.button} onPress={handleSubmitPress}>
                     <Text>Submit</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.wrapper}>
-                <TouchableOpacity style={styles.button} onPress={handleDl}>
+                <TouchableOpacity style={styles.button} onPress={handleDownloadPress}>
                     <Text>Download</Text>
                 </TouchableOpacity>
             </View>
