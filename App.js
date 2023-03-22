@@ -2,12 +2,12 @@ import React, {useState} from "react";
 import {
     ScrollView,
     View,
-    StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
 } from "react-native";
-import CheckBox from "expo-checkbox";
+import {CheckBoxWrapper} from "./checkbox";
+import {styles} from "./styles";
 import {storageRef, storage} from "./firebase-config";
 import {
     getMetadata,
@@ -159,258 +159,34 @@ export default function App() {
 
     return (
         <ScrollView style={styles.container}>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>พรบ: ไม่หมดอายุ</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={law}
-                    onValueChange={() => setLaw(!law)}
-                    color={law ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ภาษี: ไม่หมดอายุ</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tax}
-                    onValueChange={() => setTax(!tax)}
-                    color={tax ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ประกันภัย: ไม่หมดอายุ</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={insurance}
-                    onValueChange={() => setInsurance(!insurance)}
-                    color={insurance ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>พาสสปอร์ตข้ามแดน: ไม่หมดอายุ</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={passport}
-                    onValueChange={() => setPassport(!passport)}
-                    color={passport ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟหน้ารถ: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={headlight}
-                    onValueChange={() => setHeadlight(!headlight)}
-                    color={headlight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={turnlight}
-                    onValueChange={() => setTurnlight(!turnlight)}
-                    color={turnlight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟหลังคา: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={toplight}
-                    onValueChange={() => setToplight(!toplight)}
-                    color={toplight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={lubeoil}
-                    onValueChange={() => setLubeoil(!lubeoil)}
-                    color={lubeoil ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>น้ำหล่อเย็นหม้อน้ํา: ระดับสูงสุด MAX</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tankcoolant}
-                    onValueChange={() => setTankcoolant(!tankcoolant)}
-                    color={tankcoolant ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ระบบปัดน้ำฝน: ระดับสูงสุด MAX</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={percipitation}
-                    onValueChange={() => setPercipitation(!percipitation)}
-                    color={percipitation ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ชื่อประกอบการ: ติดครบไม่ชำรุด</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={opsname}
-                    onValueChange={() => setOpsname(!opsname)}
-                    color={opsname ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>กระจกมองข่าง: ครบไม่แตกร้าว</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={doormirror}
-                    onValueChange={() => setDoormirror(!doormirror)}
-                    color={doormirror ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางหน้า: ความลึก > 5 มม</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tire}
-                    onValueChange={() => setTire(!tire)}
-                    color={tire ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางเพลาที่ 1: ความลึก > 3 มม.</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tirehub}
-                    onValueChange={() => setTirehub(!tirehub)}
-                    color={tirehub ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางเพลาที่ 2: ความลึก > 3 มม.</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tirehub2}
-                    onValueChange={() => setTirehub2(!tirehub2)}
-                    color={tirehub2 ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางเพลาที่ 3: ความลึก > 3 มม.</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tirehub3}
-                    onValueChange={() => setTirehub3(!tirehub3)}
-                    color={tirehub3 ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางเพลาที่ 4: ความลึก > 3 มม.</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tirehub4}
-                    onValueChange={() => setTirehub4(!tirehub4)}
-                    color={tirehub4 ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>สภาพยางอะหลัย: มีพร้อมใช้งาน</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={spare}
-                    onValueChange={() => setSpare(!spare)}
-                    color={spare ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>แรงดันลมยาง: 130 ปอนด์</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={pressure}
-                    onValueChange={() => setPressure(!pressure)}
-                    color={pressure ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก.</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={extinguisher}
-                    onValueChange={() => setExtinguisher(!extinguisher)}
-                    color={extinguisher ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>หมอนหนุนล้อ: จํานวน 2 อัน</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={tiresupport}
-                    onValueChange={() => setTiresupport(!tiresupport)}
-                    color={tiresupport ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>กรวยจราจร: จํานวน 2 อัน</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={cone}
-                    onValueChange={() => setCone(!cone)}
-                    color={cone ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟเบรก: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={breaklight}
-                    onValueChange={() => setBreaklight(!breaklight)}
-                    color={breaklight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟถอย: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={reverselight}
-                    onValueChange={() => setReverselight(!reverselight)}
-                    color={reverselight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={backturnlight}
-                    onValueChange={() => setBackturnlight(!backturnlight)}
-                    color={backturnlight ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ความมั่งคงแข็งแรง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={structuralintegrity}
-                    onValueChange={() => setStructuralintegrity(!structuralintegrity)}
-                    color={structuralintegrity ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ความมั่งคงแข็งแรง</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={fastener}
-                    onValueChange={() => setFastener(!fastener)}
-                    color={fastener ? "#4630EB" : undefined}
-                />
-            </View>
-            <View style={styles.wrapper}>
-                <Text style={styles.text}>ผ้าใบปิดคลุม</Text>
-                <CheckBox
-                    style={styles.checkbox}
-                    value={cover}
-                    onValueChange={() => setCover(!cover)}
-                    color={cover ? "#4630EB" : undefined}
-                />
-            </View>
+            <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw}/>
+            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax}/>
+            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance} />
+            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport} />
+            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight} />
+            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight} />
+            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight} />
+            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil} />
+            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant} setValue={setTankcoolant} />
+            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation} />
+            <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}/>
+            <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}/>
+            <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}/>
+            <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare}/>
+            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}/>
+            <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher} setValue={setExtinguisher}/>
+            <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}/>
+            <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone}/>
+            <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}/>
+            <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}/>
+            <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight} setValue={setBackturnlight} />
+            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={structuralintegrity} setValue={setStructuralintegrity} />
+            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} />
+            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} />
             <View style={styles.wrapper}>
                 <TextInput
                     value={plate}
@@ -431,41 +207,3 @@ export default function App() {
         </ScrollView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        padding: 16,
-        paddingTop: 10,
-    },
-    buttonContainer: {
-        alignContent: "center",
-        marginBottom: 20,
-    },
-    button: {
-        alignItems: "center",
-        backgroundColor: "#DDDDDD",
-        padding: 10,
-        flex: 1,
-        borderRadius: 5,
-    },
-    wrapper: {
-        display: "flex",
-        flexDirection: "row",
-        alignContent: "center",
-        paddingVertical: 15,
-    },
-    checkbox: {
-        marginLeft: 10,
-        marginTop: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 'center',
-        width: 35,
-        height: 35,
-    },
-    text: {
-        lineHeight: 30,
-        fontSize: 20,
-    },
-});
