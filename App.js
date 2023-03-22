@@ -15,6 +15,7 @@ import {
     getDownloadURL,
     ref,
 } from "firebase/storage";
+import * as XLSX from 'xlsx';
 
 export default function App() {
     const [law, setLaw] = useState(false);
@@ -65,11 +66,17 @@ export default function App() {
                 reader.readAsText(blob);
                 reader.onloadend = () => {
                     const data = JSON.parse(reader.result);
+                    const datas = []
                     for (const key in data) {
                         if (data.hasOwnProperty(key)) {
-                            console.log(`${key} : ${data[key]}`)
+                            var info = [key, data[key]]
+                            datas.push(info)
                         }
                     }
+                    var workbook = XLSX.utils.book_new(), worksheet = XLSX.utils.aoa_to_sheet(datas);
+                    workbook.SheetNames.push("First");
+                    workbook.Sheets["First"] = worksheet;
+                    XLSX.writeFile(workbook, `${plate}_${dateStr}.xlsx`);
                 };
             };
 
@@ -80,6 +87,11 @@ export default function App() {
     }
 
     function handleSubmitPress() {
+        if (!plate) {
+            alert("โปรดใส่ทะเบียนรถก่อนส่ง")
+            return
+        }
+
         let data = {
             'law': law,
             'tax': tax,
