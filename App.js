@@ -49,24 +49,91 @@ export default function App() {
     const [cover, setCover] = useState(false);
     const [plate, setPlate] = useState('');
     const plateNums = ['นย7768', 'อว2446', 'ตม6547']
-
+    const topics = [
+        'พรบ',
+        'ภาษี',
+        'ประกันภัย',
+        'พาสสปอร์ตข้ามแดน',
+        'ไฟหน้ารถ',
+        'ไฟหรี่ไฟเลี้ยว',
+        'ไฟหลังคา',
+        'ระดับน้ำมันเครื่อง',
+        'น้ำหล่อเย็นหม้อน้ำ',
+        'ระบบปัดน้ำฝน',
+        'ชื่อประกอบการ',
+        'กระจกมองข้าง',
+        'สภาพยางหน้า',
+        'สภาพยางเพลาที่ 1',
+        'สภาพยางเพลาที่ 2',
+        'สภาพยางเพลาที่ 3',
+        'สภาพยางเพลาที่ 4',
+        'สภาพยางอะหลัย',
+        'แรงดันลมยาง',
+        'ถังดับเพลิง',
+        'หมอนหนุนล้อ',
+        'กรวยจราจร',
+        'ไฟเบรก',
+        'ไฟถอย',
+        'ไฟเลี้ยว ไฟหรี่ ท้าย',
+        'ความมั่งคงแข็งแรง',
+        'อุปกรณ์ผูกรัดติดตรึง',
+        'ผ้าใบปิดคลุม'
+    ];
+    const standards = [
+        'ไม่หมดอายุ',
+        'ไม่หมดอายุ',
+        'ไม่หมดอายุ',
+        'ไม่หมดอายุ',
+        'ติดครบและส่องสว่าง',
+        'ติดครบและส่องสว่าง',
+        'ติดครบและส่องสว่าง',
+        'ระดับสูงสุด MAX',
+        'ระดับสูงสุด MAX',
+        'ระดับสูงสุด MAX',
+        'ติดครบไม่ชำรุด',
+        'ครบไม่แตกร้าว',
+        'ความลึก > 5 มม',
+        'ความลึก > 3 มม.',
+        'ความลึก > 3 มม.',
+        'ความลึก > 3 มม.',
+        'ความลึก > 3 มม.',
+        'มีพร้อมใช้งาน',
+        '130 ปอนด์',
+        'จํานวน 2 ถังถังละ 6 กก.',
+        'จํานวน 2 อัน',
+        'จํานวน 2 อัน',
+        'ติดครบและส่องสว่าง',
+        'ติดครบและส่องสว่าง',
+        'ติดครบและส่องสว่าง',
+        '',
+        '',
+        ''
+    ];
     const [fontsLoaded] = useFonts({
         'Noto': require('./assets/NotoSansTH.ttf'),
     });
 
     const handleDownloadPress = async () => {
         let dateStr = new Date().toISOString().slice(0, 10);
-        var finalDatas = await downloadData(dateStr);
-        console.log(finalDatas);
-        var workbook = XLSX.utils.book_new(), worksheet = XLSX.utils.aoa_to_sheet(finalDatas);
-        workbook.SheetNames.push("Data");
-        workbook.Sheets["Data"] = worksheet;
+        var datas = await downloadData(dateStr);
+        var workbook = XLSX.utils.book_new();
+        for (let data of datas) {
+            const dataRow = [];
+            for (let i in topics) {
+                const row = [];
+                row.push(topics[i], standards[i], data[i]);
+                dataRow.push(row);
+            }
+            var sheetName = data[data.length - 1];
+            workbook.SheetNames.push(sheetName);
+            var worksheet = XLSX.utils.aoa_to_sheet(dataRow);
+            workbook.Sheets[sheetName] = worksheet;
+        }
         XLSX.writeFile(workbook, `${dateStr}.xlsx`);
     }
 
     async function downloadData(date) {
         const datas = [];
-        datas.push([date]);
         for (let plateNum of plateNums) {
             let fileRef = ref(storage, `${plateNum}_${date}.json`);
             try {
@@ -81,8 +148,9 @@ export default function App() {
                 const data = JSON.parse(jsonString);
                 const values = [];
                 for (let value of Object.values(data)) {
-                    values.push(value);
+                    values.push(value.toString().toLowerCase() === "true" ? "✓" : "X");
                 }
+                values.push(plateNum);
                 datas.push(values);
                 console.log(values);
             } catch (error) {
@@ -192,7 +260,7 @@ export default function App() {
             <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}/>
             <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
                              setValue={setBackturnlight}/>
-            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={structuralintegrity} setValue={setStructuralintegrity}/>
+            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity} setValue={setStructuralintegrity}/>
             <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener}/>
             <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover}/>
             <View style={styles.wrapper}>
