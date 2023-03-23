@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
 } from "react-native";
 import {CheckBoxWrapper} from "./checkbox";
+import {useFonts} from 'expo-font';
 import {styles} from "./styles";
 import {storageRef, storage} from "./firebase-config";
 import {
@@ -47,6 +48,10 @@ export default function App() {
     const [fastener, setFastener] = useState(false);
     const [cover, setCover] = useState(false);
     const [plate, setPlate] = useState('');
+
+    const [fontsLoaded] = useFonts({
+        'Noto': require('./assets/NotoSansTH.ttf'),
+    });
 
     const handleDownloadPress = async () => {
         let dateStr = new Date().toISOString().slice(0, 10);
@@ -161,14 +166,14 @@ export default function App() {
         <ScrollView style={styles.container}>
             <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw}/>
             <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax}/>
-            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance} />
-            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport} />
-            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight} />
-            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight} />
-            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight} />
-            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil} />
-            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant} setValue={setTankcoolant} />
-            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation} />
+            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}/>
+            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}/>
+            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}/>
+            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight}/>
+            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}/>
+            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}/>
+            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant} setValue={setTankcoolant}/>
+            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation}/>
             <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}/>
             <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}/>
             <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire}/>
@@ -178,15 +183,17 @@ export default function App() {
             <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}/>
             <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare}/>
             <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}/>
-            <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher} setValue={setExtinguisher}/>
+            <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher}
+                             setValue={setExtinguisher}/>
             <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}/>
             <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone}/>
             <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}/>
             <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}/>
-            <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight} setValue={setBackturnlight} />
-            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={structuralintegrity} setValue={setStructuralintegrity} />
-            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} />
-            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} />
+            <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
+                             setValue={setBackturnlight}/>
+            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={structuralintegrity} setValue={setStructuralintegrity}/>
+            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener}/>
+            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover}/>
             <View style={styles.wrapper}>
                 <TextInput
                     value={plate}

@@ -1,24 +1,38 @@
-import React, {useState} from "react";
 import {
     View,
     Text,
+    TouchableWithoutFeedback
 } from "react-native";
-import CheckBox from "expo-checkbox";
 import {styles} from "./styles";
+import {CheckBox} from 'react-native-elements';
 
 
 function CheckBoxWrapper({label, value, setValue}) {
-  return (
-    <View style={styles.wrapper}>
-      <Text style={styles.text}>{label}</Text>
-      <CheckBox
-        style={styles.checkbox}
-        value={value}
-        onValueChange={() => setValue(!value)}
-        color={value ? "#4630EB" : undefined}
-      />
-    </View>
-  );
+    const handlePress = () => {
+        setValue(!value);
+    };
+
+    return (
+        <View style={styles.overWrapper}>
+            <View style={styles.color}></View>
+            <View style={styles.wrapper}>
+                <Text style={styles.text}>{label}</Text>
+                <TouchableWithoutFeedback onPress={handlePress}>
+                    <View style={styles.circle}>
+                        <View style={styles.checkboxView}>
+                            <CheckBox
+                                style={[styles.checkbox, value && styles.checked]}
+                                checked={value}
+                                onPress={handlePress}
+                                checkedColor="#000000"
+                                uncheckedColor="#FFFFFF"
+                            />
+                        </View>
+                    </View>
+                </TouchableWithoutFeedback>
+            </View>
+        </View>
+    );
 }
 
 
