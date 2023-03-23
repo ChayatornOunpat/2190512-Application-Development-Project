@@ -48,6 +48,7 @@ export default function App() {
     const [fastener, setFastener] = useState(false);
     const [cover, setCover] = useState(false);
     const [plate, setPlate] = useState('');
+    const plateNums = ['นย7768', 'อว2446', 'ตม6547']
 
     const [fontsLoaded] = useFonts({
         'Noto': require('./assets/NotoSansTH.ttf'),
@@ -55,40 +56,40 @@ export default function App() {
 
     const handleDownloadPress = async () => {
         let dateStr = new Date().toISOString().slice(0, 10);
-        let fileRef = ref(storage, `${plate}_${dateStr}.json`);
+        var finalDatas = await downloadData(dateStr);
+        console.log(finalDatas);
+        var workbook = XLSX.utils.book_new(), worksheet = XLSX.utils.aoa_to_sheet(finalDatas);
+        workbook.SheetNames.push("Data");
+        workbook.Sheets["Data"] = worksheet;
+        XLSX.writeFile(workbook, `${dateStr}.xlsx`);
+    }
 
-        try {
-            const fileSnapshot = await getDownloadURL(fileRef);
-            const fileURL = fileSnapshot.toString();
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', fileURL);
-            xhr.responseType = 'blob';
-
-            xhr.onload = () => {
-                const blob = xhr.response;
-                const reader = new FileReader();
-                reader.readAsText(blob);
-                reader.onloadend = () => {
-                    const data = JSON.parse(reader.result);
-                    const datas = []
-                    for (const key in data) {
-                        if (data.hasOwnProperty(key)) {
-                            var info = [key, data[key]]
-                            datas.push(info)
-                        }
-                    }
-                    var workbook = XLSX.utils.book_new(), worksheet = XLSX.utils.aoa_to_sheet(datas);
-                    workbook.SheetNames.push("First");
-                    workbook.Sheets["First"] = worksheet;
-                    XLSX.writeFile(workbook, `${plate}_${dateStr}.xlsx`);
-                };
-            };
-
-            xhr.send();
-        } catch (error) {
-            alert(error);
+    async function downloadData(date) {
+        const datas = [];
+        datas.push([date]);
+        for (let plateNum of plateNums) {
+            let fileRef = ref(storage, `${plateNum}_${date}.json`);
+            try {
+                const fileSnapshot = await getDownloadURL(fileRef);
+                const fileURL = fileSnapshot.toString();
+                const response = await fetch(fileURL);
+                const blob = await response.blob();
+                const arrayBuffer = await new Response(blob).arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const textDecoder = new TextDecoder();
+                const jsonString = textDecoder.decode(uint8Array);
+                const data = JSON.parse(jsonString);
+                const values = [];
+                for (let value of Object.values(data)) {
+                    values.push(value);
+                }
+                datas.push(values);
+                console.log(values);
+            } catch (error) {
+                alert(error);
+            }
         }
+        return datas;
     }
 
     function handleSubmitPress() {
