@@ -72,6 +72,60 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
+    btnTxtView: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    btnTxt: {
+        textAlign: 'center',
+    },
+    search: {
+        padding: 16,
+        paddingTop: 10,
+        marginBottom: 8,
+        display: "flex",
+        flexDirection: "column",
+        alignContent: "center",
+        paddingVertical: 15,
+        flex: 29,
+        color: '#d2d2d2'
+    },
+    input: {
+        width: '80%',
+        height: 40,
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginTop: 20,
+        marginBottom: 10,
+        backgroundColor: '#d2d2d2',
+        color: '#000000'
+    },
+    list: {
+        width: '80%',
+        maxHeight: 200,
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+        backgroundColor: '#d2d2d2'
+    },
+    item: {
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#2f2f2f',
+        backgroundColor: '#d2d2d2'
+
+    },
+    selectedItem: {
+        marginTop: 10,
+        fontWeight: 'bold',
+    }
 });
 
 

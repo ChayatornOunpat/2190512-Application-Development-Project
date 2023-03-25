@@ -3,9 +3,9 @@ import {
     ScrollView,
     View,
     Text,
-    TextInput,
     TouchableOpacity,
 } from "react-native";
+import SearchableDropdownWrapper from "./dropdown";
 import {CheckBoxWrapper} from "./checkbox";
 import {useFonts} from 'expo-font';
 import {styles} from "./styles";
@@ -263,21 +263,19 @@ export default function App() {
             <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity} setValue={setStructuralintegrity}/>
             <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener}/>
             <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover}/>
-            <View style={styles.wrapper}>
-                <TextInput
-                    value={plate}
-                    onChangeText={setPlate}
-                    placeholder="ทะเบียนรถ"
-                />
-            </View>
+            <SearchableDropdownWrapper onItemSelect={setPlate} options={plateNums}/>
             <View style={styles.wrapper}>
                 <TouchableOpacity style={styles.button} onPress={handleSubmitPress}>
-                    <Text>Submit</Text>
+                    <View style ={styles.btnTxtView}>
+                        <Text style={styles.btnTxt}>Submit</Text>
+                    </View>
                 </TouchableOpacity>
             </View>
             <View style={styles.wrapper}>
                 <TouchableOpacity style={styles.button} onPress={handleDownloadPress}>
-                    <Text>Download</Text>
+                    <View style ={styles.btnTxtView}>
+                        <Text style={styles.btnTxt}>Download</Text>
+                    </View>
                 </TouchableOpacity>
             </View>
         </ScrollView>
