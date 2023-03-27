@@ -3,18 +3,35 @@ import {StyleSheet} from "react-native";
 const styles = StyleSheet.create({
     container: {
         width: "100%",
-        backgroundColor: "#222222"
+        backgroundColor: "#222222",
     },
-    buttonContainer: {
-        alignContent: "center",
-        marginBottom: 20,
+    center: {
+        bottom: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    button: {
-        padding: 26,
-        paddingTop: 10,
+    buttonOne: {
+        width: "90%",
+        marginLeft: '5%',
+        marginRight: '5%',
+        height: 55,
+        justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#DDDDDD",
-        flex: 1,
+        borderRadius: 5,
+    },
+    buttonRest: {
+        width: "90%",
+        height: 55,
+        marginLeft: '5%',
+        marginRight: '5%',
+        marginTop: "25px",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#DDDDDD",
         borderRadius: 5,
     },
     overWrapper: {
@@ -87,7 +104,6 @@ const styles = StyleSheet.create({
     search: {
         padding: 16,
         paddingTop: 10,
-        marginBottom: 8,
         display: "flex",
         flexDirection: "column",
         alignContent: "center",
@@ -125,7 +141,31 @@ const styles = StyleSheet.create({
     selectedItem: {
         marginTop: 10,
         fontWeight: 'bold',
-    }
+    },
+    inputView: {
+        fontFamily: 'Noto',
+        backgroundColor: '#d2d2d2',
+        borderRadius: 30,
+        width: "70%",
+        height: 45,
+        marginBottom: 20,
+        textAlign: "center"
+    },
+    loginBtn: {
+        width: "80%",
+        borderRadius: 25,
+        height: 50,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 40,
+        backgroundColor: '#d2d2d2',
+    },
+    dlContainer: {
+    flex: 1,
+    backgroundColor: "#222222",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 
