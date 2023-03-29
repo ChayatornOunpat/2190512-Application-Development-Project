@@ -35,10 +35,66 @@ const Screen = ({navigation}) => {
     const [structuralintegrity, setStructuralintegrity] = useState(false);
     const [fastener, setFastener] = useState(false);
     const [cover, setCover] = useState(false);
+    const [lawNote, setLawNote] = useState('');
+    const [taxNote, setTaxNote] = useState('');
+    const [insuranceNote, setInsuranceNote] = useState('');
+    const [passportNote, setPassportNote] = useState('');
+    const [headlightNote, setHeadlightNote] = useState('');
+    const [turnlightNote, setTurnlightNote] = useState('');
+    const [toplightNote, setToplightNote] = useState('');
+    const [lubeoilNote, setLubeoilNote] = useState('');
+    const [tankcoolantNote, setTankcoolantNote] = useState('');
+    const [percipitationNote, setPercipitationNote] = useState('');
+    const [opsnameNote, setOpsnameNote] = useState('');
+    const [doormirrorNote, setDoormirrorNote] = useState('');
+    const [tireNote, setTireNote] = useState('');
+    const [tirehubNote, setTirehubNote] = useState('');
+    const [tirehub2Note, setTirehub2Note] = useState('');
+    const [tirehub3Note, setTirehub3Note] = useState('');
+    const [tirehub4Note, setTirehub4Note] = useState('');
+    const [spareNote, setSpareNote] = useState('');
+    const [pressureNote, setPressureNote] = useState('');
+    const [extinguisherNote, setExtinguisherNote] = useState('');
+    const [tiresupportNote, setTiresupportNote] = useState('');
+    const [coneNote, setConeNote] = useState('');
+    const [breaklightNote, setBreaklightNote] = useState('');
+    const [reverselightNote, setReverselightNote] = useState('');
+    const [backturnlightNote, setBackturnlightNote] = useState('');
+    const [structuralintegrityNote, setStructuralintegrityNote] = useState('');
+    const [fastenerNote, setFastenerNote] = useState('');
+    const [coverNote, setCoverNote] = useState('');
+    const [lawFix, setLawFix] = useState('');
+    const [taxFix, setTaxFix] = useState('');
+    const [insuranceFix, setInsuranceFix] = useState('');
+    const [passportFix, setPassportFix] = useState('');
+    const [headlightFix, setHeadlightFix] = useState('');
+    const [turnlightFix, setTurnlightFix] = useState('');
+    const [toplightFix, setToplightFix] = useState('');
+    const [lubeoilFix, setLubeoilFix] = useState('');
+    const [tankcoolantFix, setTankcoolantFix] = useState('');
+    const [percipitationFix, setPercipitationFix] = useState('');
+    const [opsnameFix, setOpsnameFix] = useState('');
+    const [doormirrorFix, setDoormirrorFix] = useState('');
+    const [tireFix, setTireFix] = useState('');
+    const [tirehubFix, setTirehubFix] = useState('');
+    const [tirehub2Fix, setTirehub2Fix] = useState('');
+    const [tirehub3Fix, setTirehub3Fix] = useState('');
+    const [tirehub4Fix, setTirehub4Fix] = useState('');
+    const [spareFix, setSpareFix] = useState('');
+    const [pressureFix, setPressureFix] = useState('');
+    const [extinguisherFix, setExtinguisherFix] = useState('');
+    const [tiresupportFix, setTiresupportFix] = useState('');
+    const [coneFix, setConeFix] = useState('');
+    const [breaklightFix, setBreaklightFix] = useState('');
+    const [reverselightFix, setReverselightFix] = useState('');
+    const [backturnlightFix, setBackturnlightFix] = useState('');
+    const [structuralintegrityFix, setStructuralintegrityFix] = useState('');
+    const [fastenerFix, setFastenerFix] = useState('');
+    const [coverFix, setCoverFix] = useState('');
     const [plate, setPlate] = useState('');
     const plateNums = ['นย7768', 'อว2446', 'ตม6547']
 
-    function handleDownloadPress(){
+    function handleDownloadPress() {
         navigation.navigate('Load');
     }
 
@@ -77,7 +133,63 @@ const Screen = ({navigation}) => {
             'structuralintegrity': structuralintegrity,
             'fastener': fastener,
             'cover': cover,
-            'plate': plate
+            'plate': plate,
+            'law_note': lawNote,
+            'tax_note': taxNote,
+            'insurance_note': insuranceNote,
+            'passport_note': passportNote,
+            'headlight_note': headlightNote,
+            'turnlight_note': turnlightNote,
+            'toplight_note': toplightNote,
+            'lubeoil_note': lubeoilNote,
+            'tankcoolant_note': tankcoolantNote,
+            'percipitation_note': percipitationNote,
+            'opsname_note': opsnameNote,
+            'doormirror_note': doormirrorNote,
+            'tire_note': tireNote,
+            'tirehub_note': tirehubNote,
+            'tirehub2_note': tirehub2Note,
+            'tirehub3_note': tirehub3Note,
+            'tirehub4_note': tirehub4Note,
+            'spare_note': spareNote,
+            'pressure_note': pressureNote,
+            'extinguisher_note': extinguisherNote,
+            'tiresupport_note': tiresupportNote,
+            'cone_note': coneNote,
+            'breaklight_note': breaklightNote,
+            'reverselight_note': reverselightNote,
+            'backturnlight_note': backturnlightNote,
+            'structuralintegrity_note': structuralintegrityNote,
+            'fastener_note': fastenerNote,
+            'cover_note': coverNote,
+            'law_fix': lawFix,
+            'tax_fix': taxFix,
+            'insurance_fix': insuranceFix,
+            'passport_fix': passportFix,
+            'headlight_fix': headlightFix,
+            'turnlight_fix': turnlightFix,
+            'toplight_fix': toplightFix,
+            'lubeoil_fix': lubeoilFix,
+            'tankcoolant_fix': tankcoolantFix,
+            'percipitation_fix': percipitationFix,
+            'opsname_fix': opsnameFix,
+            'doormirror_fix': doormirrorFix,
+            'tire_fix': tireFix,
+            'tirehub_fix': tirehubFix,
+            'tirehub2_fix': tirehub2Fix,
+            'tirehub3_fix': tirehub3Fix,
+            'tirehub4_fix': tirehub4Fix,
+            'spare_fix': spareFix,
+            'pressure_fix': pressureFix,
+            'extinguisher_fix': extinguisherFix,
+            'tiresupport_fix': tiresupportFix,
+            'cone_fix': coneFix,
+            'breaklight_fix': breaklightFix,
+            'reverselight_fix': reverselightFix,
+            'backturnlight_fix': backturnlightFix,
+            'structuralintegrity_fix': structuralintegrityFix,
+            'fastener_fix': fastenerFix,
+            'cover_fix': coverFix,
         }
         // Convert the data object to a JSON string
         let jsonData = JSON.stringify(data);
@@ -115,40 +227,75 @@ const Screen = ({navigation}) => {
 
     return (
         <View style={styles.container}>
-            <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw}/>
-            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax}/>
-            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}/>
-            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}/>
-            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}/>
-            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight}/>
-            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}/>
-            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}/>
-            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant}
-                             setValue={setTankcoolant}/>
-            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation}
-                             setValue={setPercipitation}/>
-            <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}/>
-            <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}/>
-            <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}/>
-            <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare}/>
-            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}/>
+            <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw} fix={lawFix} setFix={setLawFix}
+                             note={lawNote} setNote={setLawNote}/>
+            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax} note={taxNote} setNote={setTaxNote}
+                             fix={taxFix} setFix={setTaxFix}/>
+            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}
+                             note={insuranceNote} setNote={setInsuranceNote} fix={insuranceFix}
+                             setFix={setInsuranceFix}/>
+            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}
+                             note={passportNote} setNote={setPassportNote} fix={passportFix} setFix={setPassportFix}/>
+            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}
+                             note={headlightNote} setNote={setHeadlightNote} fix={headlightFix}
+                             setFix={setHeadlightFix}/>
+            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight}
+                             fix={turnlightFix} setFix={setTurnlightFix} note={turnlightNote}
+                             setNote={setTurnlightNote}/>
+            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}
+                             fix={toplightFix} setFix={setToplightFix} note={toplightNote} setNote={setToplightNote}/>
+            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}
+                             fix={lubeoilFix} setFix={setLubeoilFix} note={lubeoilNote} setNote={setLubeoilNote}/>
+            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant} setValue={setTankcoolant}
+                             fix={tankcoolantFix} setFix={setTankcoolantFix} note={tankcoolantNote}
+                             setNote={setTankcoolantNote}/>
+            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation}
+                             fix={percipitationFix} setFix={setPercipitationFix} note={percipitationNote}
+                             setNote={setPercipitationNote}/>
+            <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}
+                             fix={opsnameFix} setFix={setOpsnameFix} note={opsnameNote} setNote={setOpsnameNote}/>
+            <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}
+                             fix={doormirrorFix} setFix={setDoormirrorFix} note={doormirrorNote}
+                             setNote={setDoormirrorNote}/>
+            <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire} fix={tireFix}
+                             setFix={setTireFix} note={tireNote} setNote={setTireNote}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}
+                             fix={tirehubFix} setFix={setTirehubFix} note={tirehubNote} setNote={setTirehubNote}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}
+                             fix={tirehub2Fix} setFix={setTirehub2Fix} note={tirehub2Note} setNote={setTirehub2Note}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}
+                             fix={tirehub3Fix} setFix={setTirehub3Fix} note={tirehub3Note} setNote={setTirehub3Note}/>
+            <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}
+                             fix={tirehub4Fix} setFix={setTirehub4Fix} note={tirehub4Note} setNote={setTirehub4Note}/>
+            <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare} fix={spareFix}
+                             setFix={setSpareFix} note={spareNote} setNote={setSpareNote}/>
+            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure} fix={pressureFix}
+                             setFix={setPressureFix} note={pressureNote} setNote={setPressureNote}/>
             <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher}
-                             setValue={setExtinguisher}/>
-            <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}/>
-            <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone}/>
-            <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}/>
-            <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}/>
+                             setValue={setExtinguisher} fix={extinguisherFix} setFix={setExtinguisherFix}
+                             note={extinguisherNote} setNote={setExtinguisherNote}/>
+            <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}
+                             fix={tiresupportFix} setFix={setTiresupportFix} note={tiresupportNote}
+                             setNote={setTiresupportNote}/>
+            <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone} fix={coneFix}
+                             setFix={setConeFix} note={coneNote} setNote={setConeNote}/>
+            <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}
+                             fix={breaklightFix} setFix={setBreaklightFix} note={breaklightNote}
+                             setNote={setBreaklightNote}/>
+            <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}
+                             fix={reverselightFix} setFix={setReverselightFix} note={reverselightNote}
+                             setNote={setReverselightNote}/>
             <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
-                             setValue={setBackturnlight}/>
-            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity}
-                             setValue={setStructuralintegrity}/>
-            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener}/>
-            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover}/>
-            <SearchableDropdownWrapper onItemSelect={setPlate} options={plateNums}/>
+                             setValue={setBackturnlight} fix={backturnlightFix} setFix={setBackturnlightFix}
+                             note={backturnlightNote} setNote={setBackturnlightNote}/>
+            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity} setValue={setStructuralintegrity}
+                             fix={structuralintegrityFix} setFix={setStructuralintegrityFix}
+                             note={structuralintegrityNote} setNote={setStructuralintegrityNote}/>
+            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} fix={fastenerFix}
+                             setFix={setFastenerFix} note={fastenerNote} setNote={setFastenerNote}/>
+            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix} setFix={setCoverFix}
+                             note={coverNote} setNote={setCoverNote}/>
+            <SearchableDropdownWrapper style={styles.search} onItemSelect={setPlate} options={plateNums}/>
             <ImageBackground source={require('./assets/grey.png')} style={styles.center}>
                 <TouchableOpacity style={styles.buttonOne} onPress={handleSubmitPress}>
                     <View style={styles.btnTxtView}>
@@ -166,4 +313,4 @@ const Screen = ({navigation}) => {
 }
 
 
-export { Screen }
+export {Screen}

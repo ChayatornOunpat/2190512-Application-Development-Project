@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {styles} from "./styles";
 
-const SearchableDropdownWrapper = ({ onItemSelect, options }) => {
+const SearchableDropdownWrapper = ({ style, onItemSelect, options }) => {
   const [query, setQuery] = useState('');
   const [filteredOptions, setFilteredOptions] = useState(options);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -28,7 +28,7 @@ const SearchableDropdownWrapper = ({ onItemSelect, options }) => {
   };
 
   return (
-    <View style={styles.search}>
+    <View style={style}>
       <TextInput
         style={styles.input}
         value={query}

@@ -1,13 +1,14 @@
 import {
     View,
     Text,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    TextInput
 } from "react-native";
 import {styles} from "./styles";
 import {CheckBox} from 'react-native-elements';
 
 
-function CheckBoxWrapper({label, value, setValue}) {
+function CheckBoxWrapper({label, value, setValue, note, setNote, fix, setFix}) {
     const handlePress = () => {
         setValue(!value);
     };
@@ -31,6 +32,22 @@ function CheckBoxWrapper({label, value, setValue}) {
                     </View>
                 </TouchableWithoutFeedback>
             </View>
+            {!value && (
+                <View>
+                    <TextInput
+                        style={styles.noteAndFix}
+                        placeholder="Note"
+                        onChangeText={text => setNote(text)}
+                        value={note}
+                    />
+                    <TextInput
+                        style={styles.noteAndFix}
+                        placeholder="Fix"
+                        onChangeText={text => setFix(text)}
+                        value={fix}
+                    />
+                </View>
+            )}
         </View>
     );
 }

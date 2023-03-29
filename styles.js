@@ -4,6 +4,7 @@ const styles = StyleSheet.create({
     container: {
         width: "100%",
         backgroundColor: "#222222",
+        display: "flex",
     },
     center: {
         bottom: 0,
@@ -148,7 +149,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         width: "70%",
         height: 45,
-        marginBottom: 20,
+        marginTop: 20,
         textAlign: "center"
     },
     loginBtn: {
@@ -161,11 +162,26 @@ const styles = StyleSheet.create({
         backgroundColor: '#d2d2d2',
     },
     dlContainer: {
-    flex: 1,
-    backgroundColor: "#222222",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+        flex: 1,
+        backgroundColor: "#222222",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    noteAndFix: {
+        width: 280,
+        height: 25,
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 5,
+        backgroundColor: '#696969',
+        color: '#000000'
+    },
+    searchAbsolute: {
+        alignSelf: "center",
+        marginBottom: 25,
+        width:"60%"
+    },
 });
 
 

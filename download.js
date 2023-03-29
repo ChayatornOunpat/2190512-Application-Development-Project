@@ -7,6 +7,7 @@ import {
     TouchableOpacity,
 } from "react-native";
 import {styles} from "./styles";
+import SearchableDropdownWrapper from "./dropdown";
 import {
     getDownloadURL,
     ref,
@@ -50,6 +51,7 @@ const cellOf = {
 export default function Download({navigation}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [plate, setPlate] = useState('');
     const plateNums = ['นย7768', 'อว2446', 'ตม6547'];
 
     const handleDownloadPress = async () => {
@@ -89,6 +91,10 @@ export default function Download({navigation}) {
         });
     }
 
+    function handleReturnPress(){
+        navigation.navigate('Primary');
+    }
+
     async function downloadData(date) {
         var datas = [];
         for (let plateNum of plateNums) {
@@ -113,7 +119,7 @@ export default function Download({navigation}) {
     return (
         <View style={styles.dlContainer}>
             <TextInput
-                style={styles.inputView}
+                style={[styles.inputView, {marginTop: '25%' }]}
                 placeholder="Email."
                 placeholderTextColor="#003f5c"
                 onChangeText={(email) => setEmail(email)}
@@ -125,8 +131,12 @@ export default function Download({navigation}) {
                 secureTextEntry={true}
                 onChangeText={(password) => setPassword(password)}
             />
+            <SearchableDropdownWrapper style={styles.searchAbsolute} onItemSelect={setPlate} options={plateNums}/>
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
                 <Text>Authenticate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.loginBtn} onPress={handleReturnPress}>
+                <Text>Return</Text>
             </TouchableOpacity>
         </View>
     );
