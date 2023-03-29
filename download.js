@@ -16,110 +16,81 @@ import {auth} from './firebase-config';
 import {signInWithEmailAndPassword, signOut} from "firebase/auth";
 import * as XLSX from 'xlsx';
 
+const cellOf = {
+    "law": "D5", "law_note": "E5", "law_fix": "F5",
+    "tax": "D6", "tax_note": "E6", "tax_fix": "F6",
+    "insurance": "D7", "insurance_note": "E7", "insurance_fix": "F7",
+    "passport": "D8", "passport_note": "E8", "passport_fix": "F8",
+    "headlight": "D9", "headlight_note": "E9", "headlight_fix": "F9",
+    "turnlight": "D10", "turnlight_note": "E10", "turnlight_fix": "F10",
+    "toplight": "D11", "toplight_note": "E11", "toplight_fix": "F11",
+    "lubeoil": "D12", "lubeoil_note": "E12", "lubeoil_fix": "F12",
+    "tankcoolant": "D13", "tankcoolant_note": "E13", "tankcoolant_fix": "F13",
+    "percipitation": "D14", "percipitation_note": "E14", "percipitation_fix": "F14",
+    "opsname": "D15", "opsname_note": "E15", "opsname_fix": "F15",
+    "doormirror": "D16", "doormirror_note": "E16", "doormirror_fix": "F16",
+    "tire": "D17", "tire_note": "E17", "tire_fix": "F17",
+    "tirehub": "D18", "tirehub_note": "E18", "tirehub_fix": "F18",
+    "tirehub2": "D19", "tirehub2_note": "E19", "tirehub2_fix": "F19",
+    "tirehub3": "D20", "tirehub3_note": "E20", "tirehub3_fix": "F20",
+    "tirehub4": "D21", "tirehub4_note": "E21", "tirehub4_fix": "F21",
+    "spare": "D22", "spare_note": "E22", "spare_fix": "F22",
+    "pressure": "D23", "pressure_note": "E23", "pressure_fix": "F23",
+    "extinguisher": "D24", "extinguisher_note": "E24", "extinguisher_fix": "F24",
+    "tiresupport": "D25", "tiresupport_note": "E25", "tiresupport_fix": "F25",
+    "cone": "D26", "cone_note": "E26", "cone_fix": "F26",
+    "breaklight": "D27", "breaklight_note": "E27", "breaklight_fix": "F27",
+    "reverselight": "D28", "reverselight_note": "E28", "reverselight_fix": "F28",
+    "backturnlight": "D29", "backturnlight_note": "E29", "backturnlight_fix": "F29",
+    "structuralintegrity": "D34", "structuralintegrity_note": "E34", "structuralintegrity_fix": "F34",
+    "fastener": "D35", "fastener_note": "E35", "fastener_fix": "F35",
+    "cover": "D36", "cover_note": "E36", "cover_fix": "F36"
+}
 
 export default function Download({navigation}) {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const plateNums = ['นย7768', 'อว2446', 'ตม6547']
-    const topics = [
-        'พรบ',
-        'ภาษี',
-        'ประกันภัย',
-        'พาสสปอร์ตข้ามแดน',
-        'ไฟหน้ารถ',
-        'ไฟหรี่ไฟเลี้ยว',
-        'ไฟหลังคา',
-        'ระดับน้ำมันเครื่อง',
-        'น้ำหล่อเย็นหม้อน้ำ',
-        'ระบบปัดน้ำฝน',
-        'ชื่อประกอบการ',
-        'กระจกมองข้าง',
-        'สภาพยางหน้า',
-        'สภาพยางเพลาที่ 1',
-        'สภาพยางเพลาที่ 2',
-        'สภาพยางเพลาที่ 3',
-        'สภาพยางเพลาที่ 4',
-        'สภาพยางอะหลัย',
-        'แรงดันลมยาง',
-        'ถังดับเพลิง',
-        'หมอนหนุนล้อ',
-        'กรวยจราจร',
-        'ไฟเบรก',
-        'ไฟถอย',
-        'ไฟเลี้ยว ไฟหรี่ ท้าย',
-        'ความมั่งคงแข็งแรง',
-        'อุปกรณ์ผูกรัดติดตรึง',
-        'ผ้าใบปิดคลุม'
-    ];
-    const standards = [
-        'ไม่หมดอายุ',
-        'ไม่หมดอายุ',
-        'ไม่หมดอายุ',
-        'ไม่หมดอายุ',
-        'ติดครบและส่องสว่าง',
-        'ติดครบและส่องสว่าง',
-        'ติดครบและส่องสว่าง',
-        'ระดับสูงสุด MAX',
-        'ระดับสูงสุด MAX',
-        'ระดับสูงสุด MAX',
-        'ติดครบไม่ชำรุด',
-        'ครบไม่แตกร้าว',
-        'ความลึก > 5 มม',
-        'ความลึก > 3 มม.',
-        'ความลึก > 3 มม.',
-        'ความลึก > 3 มม.',
-        'ความลึก > 3 มม.',
-        'มีพร้อมใช้งาน',
-        '130 ปอนด์',
-        'จํานวน 2 ถังถังละ 6 กก.',
-        'จํานวน 2 อัน',
-        'จํานวน 2 อัน',
-        'ติดครบและส่องสว่าง',
-        'ติดครบและส่องสว่าง',
-        'ติดครบและส่องสว่าง',
-        '',
-        '',
-        ''
-    ];
+    const plateNums = ['นย7768', 'อว2446', 'ตม6547'];
 
     const handleDownloadPress = async () => {
-        let signedIn = false;
         let dateStr = new Date().toISOString().slice(0, 10);
         var datas = await downloadData(dateStr);
-        signInWithEmailAndPassword(auth, email, password)
-            .then(userCredential => {
-                    const user = userCredential.user;
-                    var workbook = XLSX.utils.book_new();
-                    for (let data of datas) {
-                        const dataRow = [];
-                        for (let i in topics) {
-                            const row = [];
-                            row.push(topics[i], standards[i], data[i]);
-                            dataRow.push(row);
-                        }
-                        var sheetName = data[data.length - 1];
-                        workbook.SheetNames.push(sheetName);
-                        var worksheet = XLSX.utils.aoa_to_sheet(dataRow);
-                        workbook.Sheets[sheetName] = worksheet;
-                        XLSX.writeFile(workbook, `${dateStr}.xlsx`);
-                        //TODO: test sign out errors
-                        signOut(auth)
-                            .then(() => {
-                                signedIn = false
-                                navigation.navigate('Primary');
-                            })
-                            .catch(error => alert(error.message));
+        signInWithEmailAndPassword(auth, email, password).then(async userCredential => {
+            let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
+            var template;
+            try {
+                const fileSnapshot = await getDownloadURL(fileRef);
+                const fileURL = fileSnapshot.toString();
+                const response = await fetch(fileURL);
+                const arrayBuffer = await response.arrayBuffer();
+                template = XLSX.read(arrayBuffer, { "cellStyles": true });
+            } catch (error) {
+                alert(error);
+            }
+            for (let data of datas) {
+                var workbook = template;
+                var sheet = workbook["Sheets"]["แบบตรวจสอบรถก่อนเดินทาง"];
+                for (let key of Object.keys(data)) {
+                    if (data.hasOwnProperty(key) && key != "plate") {
+                        sheet[cellOf[key]].v = data[key].toString().toLowerCase() === "true" ? "✓" : "X";
                     }
                 }
-            ).catch(error => {
+                workbook["Sheets"]["แบบตรวจสอบรถก่อนเดินทาง"] = sheet;
+                XLSX.writeFile(workbook, `${data["plate"]}_${dateStr}.xlsx`);
+            }
+
+            //TODO: test sign out errors
+            signOut(auth)
+                .then(() => navigation.navigate('Primary')
+                .catch(error => alert(error.message)));
+        }).catch(error => {
             alert(error.message);
             navigation.navigate('Primary');
         });
     }
 
-
     async function downloadData(date) {
-        const datas = [];
+        var datas = [];
         for (let plateNum of plateNums) {
             let fileRef = ref(storage, `${plateNum}_${date}.json`);
             try {
@@ -131,13 +102,7 @@ export default function Download({navigation}) {
                 const uint8Array = new Uint8Array(arrayBuffer);
                 const textDecoder = new TextDecoder();
                 const jsonString = textDecoder.decode(uint8Array);
-                const data = JSON.parse(jsonString);
-                const values = [];
-                for (let value of Object.values(data)) {
-                    values.push(value.toString().toLowerCase() === "true" ? "✓" : "X");
-                }
-                values.push(plateNum);
-                datas.push(values);
+                datas.push(JSON.parse(jsonString));
             } catch (error) {
                 alert(error);
             }
