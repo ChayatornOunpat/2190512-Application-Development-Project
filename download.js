@@ -1,6 +1,5 @@
 import React, {useState} from "react";
 import {
-    StyleSheet,
     Text,
     View,
     TextInput,
@@ -92,8 +91,7 @@ export default function Download({navigation}) {
                         setTimeout(function () {
                             document.body.removeChild(a);
                             window.URL.revokeObjectURL(url);
-                        },
-                            0);
+                        },0);
                     })
                     .catch(function (error) {
                         console.log(error.message);
