@@ -14,8 +14,9 @@ import {
 } from "firebase/storage";
 import {storage} from "./firebase-config";
 import {auth} from './firebase-config';
-import {signInWithEmailAndPassword, signOut} from "firebase/auth";
-import * as XLSX from 'xlsx';
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+
+const ExcelJS = require('exceljs');
 
 const cellOf = {
     "law": "D5", "law_note": "E5", "law_fix": "F5",
@@ -59,26 +60,44 @@ export default function Download({navigation}) {
         var datas = await downloadData(dateStr);
         signInWithEmailAndPassword(auth, email, password).then(async userCredential => {
             let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
-            var template;
+            var buffer;
             try {
                 const fileSnapshot = await getDownloadURL(fileRef);
                 const fileURL = fileSnapshot.toString();
                 const response = await fetch(fileURL);
-                const arrayBuffer = await response.arrayBuffer();
-                template = XLSX.read(arrayBuffer, { "cellStyles": true });
+                buffer = await response.arrayBuffer();
             } catch (error) {
                 alert(error);
             }
             for (let data of datas) {
-                var workbook = template;
-                var sheet = workbook["Sheets"]["แบบตรวจสอบรถก่อนเดินทาง"];
+                const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(buffer);
+                const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
                 for (let key of Object.keys(data)) {
                     if (data.hasOwnProperty(key) && key != "plate") {
-                        sheet[cellOf[key]].v = data[key].toString().toLowerCase() === "true" ? "✓" : "X";
+                        const value = data[key];
+                        sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
                     }
                 }
-                workbook["Sheets"]["แบบตรวจสอบรถก่อนเดินทาง"] = sheet;
-                XLSX.writeFile(workbook, `${data["plate"]}_${dateStr}.xlsx`);
+                const plateNum = data["plate"];
+                workbook.xlsx.writeBuffer({ base64: true })
+                    .then(function (xls64) {
+                        var a = document.createElement("a");
+                        var data = new Blob([xls64], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                        var url = URL.createObjectURL(data);
+                        a.href = url;
+                        a.download = `${plateNum}_${dateStr}.xlsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function () {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        },
+                            0);
+                    })
+                    .catch(function (error) {
+                        console.log(error.message);
+                    });
             }
 
             //TODO: test sign out errors
@@ -99,19 +118,15 @@ export default function Download({navigation}) {
         var datas = [];
         for (let plateNum of plateNums) {
             let fileRef = ref(storage, `${plateNum}_${date}.json`);
-            try {
-                const fileSnapshot = await getDownloadURL(fileRef);
-                const fileURL = fileSnapshot.toString();
-                const response = await fetch(fileURL);
-                const blob = await response.blob();
-                const arrayBuffer = await new Response(blob).arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const textDecoder = new TextDecoder();
-                const jsonString = textDecoder.decode(uint8Array);
-                datas.push(JSON.parse(jsonString));
-            } catch (error) {
-                alert(error);
-            }
+            const fileSnapshot = await getDownloadURL(fileRef);
+            const fileURL = fileSnapshot.toString();
+            const response = await fetch(fileURL);
+            const blob = await response.blob();
+            const arrayBuffer = await new Response(blob).arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const textDecoder = new TextDecoder();
+            const jsonString = textDecoder.decode(uint8Array);
+            datas.push(JSON.parse(jsonString));
         }
         return datas;
     }
