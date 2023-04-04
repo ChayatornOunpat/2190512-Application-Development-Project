@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import {styles} from "./styles";
 import {auth} from './firebase-config';
-import {signInWithEmailAndPassword, signOut} from "firebase/auth";
+import {signInWithEmailAndPassword} from "firebase/auth";
 
 export default function Authenticate({navigation}) {
     const [email, setEmail] = useState("");
@@ -24,7 +24,7 @@ export default function Authenticate({navigation}) {
     return (
         <View style={styles.dlContainer}>
             <TextInput
-                style={[styles.inputView, {marginTop: '25%'}]}
+                style={styles.inputView}
                 placeholder="Email."
                 placeholderTextColor="#003f5c"
                 onChangeText={(email) => setEmail(email)}

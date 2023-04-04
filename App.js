@@ -5,6 +5,7 @@ import {
 import {useFonts} from 'expo-font';
 import {Screen} from "./component";
 import {Authenticate} from "./Authenticate";
+import Admin from "./Admin";
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {styles} from "./styles";
@@ -30,6 +31,7 @@ export default function App() {
             <Stack.Navigator screenOptions={{headerShown: false}}>
                 <Stack.Screen name="SignIn" component={Authenticate}/>
                 <Stack.Screen name="Primary" component={Screen}/>
+                <Stack.Screen name="Admin" component={Admin}/>
             </Stack.Navigator>
         </NavigationContainer>
     );

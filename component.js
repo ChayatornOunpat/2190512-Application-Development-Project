@@ -127,24 +127,7 @@ const Screen = ({navigation}) => {
     const [plate, setPlate] = useState('');
     const plateNums = ['นย7768', 'อว2446', 'ตม6547']
 
-    async function downloadData(date) {
-        var datas = [];
-        for (let plateNum of plateNums) {
-            let fileRef = ref(storage, `${plateNum}_${date}.json`);
-            const fileSnapshot = await getDownloadURL(fileRef);
-            const fileURL = fileSnapshot.toString();
-            const response = await fetch(fileURL);
-            const blob = await response.blob();
-            const arrayBuffer = await new Response(blob).arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const textDecoder = new TextDecoder();
-            const jsonString = textDecoder.decode(uint8Array);
-            datas.push(JSON.parse(jsonString));
-        }
-        return datas;
-    }
-
-    const handleDownloadPress = async () => {
+    const handleAdminPress = async () => {
         let permRef = ref(storage, `permission.json`);
         const fileSnapshot = await getDownloadURL(permRef);
         const fileURL = fileSnapshot.toString();
@@ -157,51 +140,7 @@ const Screen = ({navigation}) => {
         const permKV = JSON.parse(jsonString)
         const permList = permKV['have']
         if (permList.includes(auth.currentUser.email)) {
-            let date = new Date().toISOString().slice(0, 10);
-            var datas = await downloadData(date);
-            let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
-            var buffer;
-            try {
-                const fileSnapshot = await getDownloadURL(fileRef);
-                const fileURL = fileSnapshot.toString();
-                const response = await fetch(fileURL);
-                buffer = await response.arrayBuffer();
-            } catch (error) {
-                alert(error);
-            }
-            for (let data of datas) {
-                const plateNum = data["plate"];
-                const workbook = new ExcelJS.Workbook();
-                await workbook.xlsx.load(buffer);
-                const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${date}`
-                for (let key of Object.keys(data)) {
-                    if (data.hasOwnProperty(key) && key != "plate") {
-                        const value = data[key];
-                        sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
-                    }
-                }
-                workbook.xlsx.writeBuffer({base64: true})
-                    .then(function (xls64) {
-                        var a = document.createElement("a");
-                        var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-                        var url = URL.createObjectURL(data);
-                        a.href = url;
-                        a.download = `${plateNum}_${date}.xlsx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        setTimeout(function () {
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                        }, 0);
-                    })
-                    .catch(function (error) {
-                        console.log(error.message);
-                    });
-            }
-
-        } else {
-            alert("user does not have permission")
+            navigation.navigate('Admin')
         }
     }
 
@@ -416,9 +355,9 @@ const Screen = ({navigation}) => {
                         <Text style={styles.btnTxt}>Submit</Text>
                     </View>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.buttonRest} onPress={handleDownloadPress}>
+                <TouchableOpacity style={styles.buttonRest} onPress={handleAdminPress}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>Download</Text>
+                        <Text style={styles.btnTxt}>Admin</Text>
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonRest} onPress={handleSignOutPress}>
