@@ -11,6 +11,20 @@ import {getDownloadURL, ref} from "firebase/storage";
 import {auth, storage} from "./firebase-config";
 import * as ExcelJS from "exceljs";
 
+const month = {
+    "Jan": "01",
+    "Feb": "02",
+    "Mar": "03",
+    "Apr": "04",
+    "May": "05",
+    "Jun": "06",
+    "Jul": "07",
+    "Aug": "08",
+    "Sep": "09",
+    "Oct": "10",
+    "Nov": "11",
+    "Dec": "12"
+}
 const cellOf = {
     "law": "D5", "law_note": "E5", "law_fix": "F5",
     "tax": "D6", "tax_note": "E6", "tax_fix": "F6",
@@ -77,8 +91,8 @@ export default function Admin({navigation}) {
         const permKV = JSON.parse(jsonString)
         const permList = permKV['have']
         if (permList.includes(auth.currentUser.email)) {
-            let date = new Date().toISOString().slice(0, 10);
-            var datas = await downloadData(date);
+            const dateStr = formatDate(date);
+            var datas = await downloadData(dateStr);
             let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
             var buffer;
             try {
@@ -94,7 +108,7 @@ export default function Admin({navigation}) {
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${date}`
+                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${dateStr}`
                 for (let key of Object.keys(data)) {
                     if (data.hasOwnProperty(key) && key != "plate") {
                         const value = data[key];
@@ -107,7 +121,7 @@ export default function Admin({navigation}) {
                         var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
                         var url = URL.createObjectURL(data);
                         a.href = url;
-                        a.download = `${plateNum}_${date}.xlsx`;
+                        a.download = `${plateNum}_${dateStr}.xlsx`;
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
@@ -119,10 +133,14 @@ export default function Admin({navigation}) {
                         console.log(error.message);
                     });
             }
-
         } else {
             alert("user does not have permission")
         }
+    }
+
+    function formatDate(dateToFormat) {
+        var split = dateToFormat.toString().split(" ");
+        return `${split[3]}-${month[split[1]]}-${split[2]}`;
     }
 
     const onChange = (selectedDate) => {
