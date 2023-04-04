@@ -6,7 +6,7 @@ import {
 } from "react-native";
 import SearchableDropdownWrapper from "./dropdown";
 import {styles} from "./styles";
-import DateTimePicker from 'react-datetime-picker';
+import {createElement} from 'react-native-web';
 import {getDownloadURL, ref} from "firebase/storage";
 import {auth, storage} from "./firebase-config";
 import * as ExcelJS from "exceljs";
@@ -56,8 +56,22 @@ const cellOf = {
     "cover": "D36", "cover_note": "E36", "cover_fix": "F36"
 }
 
+const MyWebDatePicker = ({date, setDate}) => {
+    return createElement('input', {
+        type: 'date',
+        value: date.toISOString().split("T")[0],
+        onChange: (event) => {
+            setDate(new Date(event.target.value));
+        },
+        style: {height: 30, padding: 5, border: "2px solid #677788", borderRadius: 5, width: 250}
+    })
+}
+
 export default function Admin({navigation}) {
-    const [date, setDate] = useState(new Date());
+    const currentDate = new Date();
+    const utcOffset = 7;
+    const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
+    const [date, setDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds));
     const [plate, setPlate] = useState('');
     const plateNums = ['นย7768', 'อว2446', 'ตม6547']
 
@@ -108,9 +122,9 @@ export default function Admin({navigation}) {
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${dateStr}`
+                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
                 for (let key of Object.keys(data)) {
-                    if (data.hasOwnProperty(key) && key != "plate") {
+                    if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
                         const value = data[key];
                         sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
                     }
@@ -143,24 +157,22 @@ export default function Admin({navigation}) {
         return `${split[3]}-${month[split[1]]}-${split[2]}`;
     }
 
-    const onChange = (selectedDate) => {
-        setDate(selectedDate);
-        console.log(date)
-    };
+    function returnPress() {
+        navigation.navigate('Primary')
+    }
 
     return (
         <View style={styles.dlContainer}>
             <SearchableDropdownWrapper style={styles.searchAbsolute} onItemSelect={setPlate} options={plateNums}/>
-            <DateTimePicker
-                style={styles.dateTimePicker}
-                onChange={onChange}
-                value={date}
-                format="yyyy-MM-dd"
-                calendarIcon={null}
-                clearIcon={null}
+            <MyWebDatePicker
+                date={date}
+                setDate={setDate}
             />
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
                 <Text>Download</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.restBtn} onPress={returnPress}>
+                <Text>Return</Text>
             </TouchableOpacity>
         </View>
     );

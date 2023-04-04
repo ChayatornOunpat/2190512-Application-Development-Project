@@ -6,38 +6,6 @@ import {styles} from "./styles";
 import {CheckBoxWrapper} from "./checkbox";
 import SearchableDropdownWrapper from "./dropdown";
 import {signOut} from "firebase/auth";
-import * as ExcelJS from 'exceljs';
-
-const cellOf = {
-    "law": "D5", "law_note": "E5", "law_fix": "F5",
-    "tax": "D6", "tax_note": "E6", "tax_fix": "F6",
-    "insurance": "D7", "insurance_note": "E7", "insurance_fix": "F7",
-    "passport": "D8", "passport_note": "E8", "passport_fix": "F8",
-    "headlight": "D9", "headlight_note": "E9", "headlight_fix": "F9",
-    "turnlight": "D10", "turnlight_note": "E10", "turnlight_fix": "F10",
-    "toplight": "D11", "toplight_note": "E11", "toplight_fix": "F11",
-    "lubeoil": "D12", "lubeoil_note": "E12", "lubeoil_fix": "F12",
-    "tankcoolant": "D13", "tankcoolant_note": "E13", "tankcoolant_fix": "F13",
-    "percipitation": "D14", "percipitation_note": "E14", "percipitation_fix": "F14",
-    "opsname": "D15", "opsname_note": "E15", "opsname_fix": "F15",
-    "doormirror": "D16", "doormirror_note": "E16", "doormirror_fix": "F16",
-    "tire": "D17", "tire_note": "E17", "tire_fix": "F17",
-    "tirehub": "D18", "tirehub_note": "E18", "tirehub_fix": "F18",
-    "tirehub2": "D19", "tirehub2_note": "E19", "tirehub2_fix": "F19",
-    "tirehub3": "D20", "tirehub3_note": "E20", "tirehub3_fix": "F20",
-    "tirehub4": "D21", "tirehub4_note": "E21", "tirehub4_fix": "F21",
-    "spare": "D22", "spare_note": "E22", "spare_fix": "F22",
-    "pressure": "D23", "pressure_note": "E23", "pressure_fix": "F23",
-    "extinguisher": "D24", "extinguisher_note": "E24", "extinguisher_fix": "F24",
-    "tiresupport": "D25", "tiresupport_note": "E25", "tiresupport_fix": "F25",
-    "cone": "D26", "cone_note": "E26", "cone_fix": "F26",
-    "breaklight": "D27", "breaklight_note": "E27", "breaklight_fix": "F27",
-    "reverselight": "D28", "reverselight_note": "E28", "reverselight_fix": "F28",
-    "backturnlight": "D29", "backturnlight_note": "E29", "backturnlight_fix": "F29",
-    "structuralintegrity": "D34", "structuralintegrity_note": "E34", "structuralintegrity_fix": "F34",
-    "fastener": "D35", "fastener_note": "E35", "fastener_fix": "F35",
-    "cover": "D36", "cover_note": "E36", "cover_fix": "F36"
-}
 
 const Screen = ({navigation}) => {
     const [law, setLaw] = useState(false);
@@ -151,13 +119,19 @@ const Screen = ({navigation}) => {
 
     }
 
-    function handleSubmitPress() {
+    const handleSubmitPress = async () => {
         if (!plate) {
             alert("โปรดใส่ทะเบียนรถก่อนส่ง")
             return
         }
 
-        let data = {
+        const currentDate = new Date();
+        const utcOffset = 7;
+        const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
+        const utcDate = new Date(currentDate.getTime() + offsetMilliseconds);
+        let dateStr = utcDate.toISOString().slice(0, 10);
+
+        let data ={
             'law': law,
             'tax': tax,
             'insurance': insurance,
@@ -243,12 +217,10 @@ const Screen = ({navigation}) => {
             'structuralintegrity_fix': structuralintegrityFix,
             'fastener_fix': fastenerFix,
             'cover_fix': coverFix,
+            'date': dateStr
         }
         // Convert the data object to a JSON string
         let jsonData = JSON.stringify(data);
-
-        // Get the current date as a string (e.g. "2023-03-15")
-        let dateStr = new Date().toISOString().slice(0, 10);
 
         // Create a file reference for the current date
         let dataRef = ref(storageRef, `${plate}_${dateStr}.json`);
@@ -282,13 +254,15 @@ const Screen = ({navigation}) => {
         <View style={styles.container}>
             <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw} fix={lawFix} setFix={setLawFix}
                              note={lawNote} setNote={setLawNote}/>
-            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax} note={taxNote} setNote={setTaxNote}
+            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax} note={taxNote}
+                             setNote={setTaxNote}
                              fix={taxFix} setFix={setTaxFix}/>
             <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}
                              note={insuranceNote} setNote={setInsuranceNote} fix={insuranceFix}
                              setFix={setInsuranceFix}/>
             <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}
-                             note={passportNote} setNote={setPassportNote} fix={passportFix} setFix={setPassportFix}/>
+                             note={passportNote} setNote={setPassportNote} fix={passportFix}
+                             setFix={setPassportFix}/>
             <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}
                              note={headlightNote} setNote={setHeadlightNote} fix={headlightFix}
                              setFix={setHeadlightFix}/>
@@ -296,10 +270,12 @@ const Screen = ({navigation}) => {
                              fix={turnlightFix} setFix={setTurnlightFix} note={turnlightNote}
                              setNote={setTurnlightNote}/>
             <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}
-                             fix={toplightFix} setFix={setToplightFix} note={toplightNote} setNote={setToplightNote}/>
+                             fix={toplightFix} setFix={setToplightFix} note={toplightNote}
+                             setNote={setToplightNote}/>
             <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}
                              fix={lubeoilFix} setFix={setLubeoilFix} note={lubeoilNote} setNote={setLubeoilNote}/>
-            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant} setValue={setTankcoolant}
+            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant}
+                             setValue={setTankcoolant}
                              fix={tankcoolantFix} setFix={setTankcoolantFix} note={tankcoolantNote}
                              setNote={setTankcoolantNote}/>
             <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation}
@@ -315,14 +291,18 @@ const Screen = ({navigation}) => {
             <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}
                              fix={tirehubFix} setFix={setTirehubFix} note={tirehubNote} setNote={setTirehubNote}/>
             <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}
-                             fix={tirehub2Fix} setFix={setTirehub2Fix} note={tirehub2Note} setNote={setTirehub2Note}/>
+                             fix={tirehub2Fix} setFix={setTirehub2Fix} note={tirehub2Note}
+                             setNote={setTirehub2Note}/>
             <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}
-                             fix={tirehub3Fix} setFix={setTirehub3Fix} note={tirehub3Note} setNote={setTirehub3Note}/>
+                             fix={tirehub3Fix} setFix={setTirehub3Fix} note={tirehub3Note}
+                             setNote={setTirehub3Note}/>
             <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}
-                             fix={tirehub4Fix} setFix={setTirehub4Fix} note={tirehub4Note} setNote={setTirehub4Note}/>
+                             fix={tirehub4Fix} setFix={setTirehub4Fix} note={tirehub4Note}
+                             setNote={setTirehub4Note}/>
             <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare} fix={spareFix}
                              setFix={setSpareFix} note={spareNote} setNote={setSpareNote}/>
-            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure} fix={pressureFix}
+            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}
+                             fix={pressureFix}
                              setFix={setPressureFix} note={pressureNote} setNote={setPressureNote}/>
             <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher}
                              setValue={setExtinguisher} fix={extinguisherFix} setFix={setExtinguisherFix}
@@ -341,12 +321,14 @@ const Screen = ({navigation}) => {
             <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
                              setValue={setBackturnlight} fix={backturnlightFix} setFix={setBackturnlightFix}
                              note={backturnlightNote} setNote={setBackturnlightNote}/>
-            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity} setValue={setStructuralintegrity}
+            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity}
+                             setValue={setStructuralintegrity}
                              fix={structuralintegrityFix} setFix={setStructuralintegrityFix}
                              note={structuralintegrityNote} setNote={setStructuralintegrityNote}/>
             <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} fix={fastenerFix}
                              setFix={setFastenerFix} note={fastenerNote} setNote={setFastenerNote}/>
-            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix} setFix={setCoverFix}
+            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
+                             setFix={setCoverFix}
                              note={coverNote} setNote={setCoverNote}/>
             <SearchableDropdownWrapper style={styles.search} onItemSelect={setPlate} options={plateNums}/>
             <ImageBackground source={require('./assets/grey.png')} style={styles.center}>

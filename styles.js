@@ -182,19 +182,14 @@ const styles = StyleSheet.create({
         marginBottom: 25,
         width:"60%"
     },
-    dateTimePicker:{
-        position: "absolute",
-    },
-    buttonAbsolute: {
-        position: "absolute",
-        top: 750,
-        bottom: 0,
-        left: 0,
-        right: 0,
+    restBtn: {
         width: '80%',
-        height: 60,
-        backgroundColor: '#d2d2d2',
         borderRadius: 25,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        backgroundColor: '#d2d2d2',
     }
 });
 
