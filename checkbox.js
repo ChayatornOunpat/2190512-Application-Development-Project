@@ -11,6 +11,8 @@ import {CheckBox} from 'react-native-elements';
 function CheckBoxWrapper({label, value, setValue, note, setNote, fix, setFix}) {
     const handlePress = () => {
         setValue(!value);
+        setNote('');
+        setFix('');
     };
 
     return (
