@@ -55,8 +55,8 @@ export default function Download({navigation}) {
     const plateNums = ['นย7768', 'อว2446', 'ตม6547'];
 
     const handleDownloadPress = async () => {
-        let dateStr = new Date().toISOString().slice(0, 10);
-        var datas = await downloadData(dateStr);
+        let date = new Date().toISOString().slice(0, 10);
+        var datas = await downloadData(date);
         signInWithEmailAndPassword(auth, email, password).then(async userCredential => {
             let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
             var buffer;
@@ -69,23 +69,24 @@ export default function Download({navigation}) {
                 alert(error);
             }
             for (let data of datas) {
+                const plateNum = data["plate"];
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
+                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${date}`
                 for (let key of Object.keys(data)) {
                     if (data.hasOwnProperty(key) && key != "plate") {
                         const value = data[key];
                         sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
                     }
                 }
-                const plateNum = data["plate"];
                 workbook.xlsx.writeBuffer({ base64: true })
                     .then(function (xls64) {
                         var a = document.createElement("a");
                         var data = new Blob([xls64], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
                         var url = URL.createObjectURL(data);
                         a.href = url;
-                        a.download = `${plateNum}_${dateStr}.xlsx`;
+                        a.download = `${plateNum}_${date}.xlsx`;
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
