@@ -1,10 +1,9 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
 import {auth, storage, storageRef} from "./firebase-config";
-import {ImageBackground, Text, TouchableOpacity, View} from "react-native";
+import {FlatList, ImageBackground, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {styles} from "./styles";
 import {CheckBoxWrapper} from "./checkbox";
-import SearchableDropdownWrapper from "./dropdown";
 import {signOut} from "firebase/auth";
 
 const Screen = ({navigation}) => {
@@ -93,7 +92,34 @@ const Screen = ({navigation}) => {
     const [fastenerFix, setFastenerFix] = useState('');
     const [coverFix, setCoverFix] = useState('');
     const [plate, setPlate] = useState('');
-    const plateNums = ['นย7768', 'อว2446', 'ตม6547']
+    const [query, setQuery] = useState('');
+    const [plateNums, setPlateNums] = useState([]);
+    const [filteredOptions, setFilteredOptions] = useState(plateNums);
+
+    useEffect(() => {
+        let fileRef = ref(storage, `plates.json`);
+        getDownloadURL(fileRef)
+            .then(fileSnapshot => fileSnapshot.toString())
+            .then(fileURL => fetch(fileURL))
+            .then(response => response.blob())
+            .then(blob => new Response(blob).arrayBuffer())
+            .then(arrayBuffer => {
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const textDecoder = new TextDecoder();
+                const jsonString = textDecoder.decode(uint8Array);
+                const data = JSON.parse(jsonString)
+                setPlateNums(data['plates']);
+            })
+            .catch(error => console.error(error));
+    }, []);
+
+    useEffect(() => {
+        setFilteredOptions(
+            plateNums.filter((option) =>
+                option.toLowerCase().includes(query.toLowerCase())
+            )
+        );
+    }, [query, plateNums]);
 
     const handleAdminPress = async () => {
         let permRef = ref(storage, `permission.json`);
@@ -106,9 +132,12 @@ const Screen = ({navigation}) => {
         const textDecoder = new TextDecoder();
         const jsonString = textDecoder.decode(uint8Array);
         const permKV = JSON.parse(jsonString)
-        const permList = permKV['have']
+        const permList = permKV['mail']
+        console.log(permList);
         if (permList.includes(auth.currentUser.email)) {
             navigation.navigate('Admin')
+        } else {
+            alert("you doesn't have the permission")
         }
     }
 
@@ -131,7 +160,7 @@ const Screen = ({navigation}) => {
         const utcDate = new Date(currentDate.getTime() + offsetMilliseconds);
         let dateStr = utcDate.toISOString().slice(0, 10);
 
-        let data ={
+        let data = {
             'law': law,
             'tax': tax,
             'insurance': insurance,
@@ -249,6 +278,11 @@ const Screen = ({navigation}) => {
             });
     }
 
+    const handleItemSelect = (item) => {
+        setPlate(item);
+        setQuery(`selected: ${item}`);
+    };
+
 
     return (
         <View style={styles.container}>
@@ -330,7 +364,29 @@ const Screen = ({navigation}) => {
             <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
                              setFix={setCoverFix}
                              note={coverNote} setNote={setCoverNote}/>
-            <SearchableDropdownWrapper style={styles.search} onItemSelect={setPlate} options={plateNums}/>
+            <View style={styles.search}>
+                <TextInput
+                    style={styles.input}
+                    value={query}
+                    placeholder="Search"
+                    onChangeText={(text) => setQuery(text)}
+                />
+                {filteredOptions.length > 0 && (
+                    <FlatList
+                        data={filteredOptions}
+                        renderItem={({item}) => (
+                            <TouchableOpacity
+                                style={styles.item}
+                                onPress={() => handleItemSelect(item)}
+                            >
+                                <Text>{item}</Text>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={(item) => item}
+                        style={styles.list}
+                    />
+                )}
+            </View>
             <ImageBackground source={require('./assets/grey.png')} style={styles.center}>
                 <TouchableOpacity style={styles.buttonOne} onPress={handleSubmitPress}>
                     <View style={styles.btnTxtView}>

@@ -1,14 +1,14 @@
-import React, {useState} from "react";
+import React, {useEffect, useState, useReducer} from "react";
 import {
     Text,
     View,
-    TouchableOpacity,
+    TouchableOpacity, TextInput, FlatList,
 } from "react-native";
-import SearchableDropdownWrapper from "./dropdown";
 import {styles} from "./styles";
 import {createElement} from 'react-native-web';
-import {getDownloadURL, ref} from "firebase/storage";
-import {auth, storage} from "./firebase-config";
+import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
+import {auth, storage, storageRef} from "./firebase-config";
+import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from "exceljs";
 
 const month = {
@@ -71,25 +71,186 @@ export default function Admin({navigation}) {
     const currentDate = new Date();
     const utcOffset = 7;
     const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
-    const [date, setDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds));
-    const [plate, setPlate] = useState('');
-    const plateNums = ['นย7768', 'อว2446', 'ตม6547']
+    const [date, setDate] = useState(new Date(currentDate.getTime()));
+    const [plate, setPlate] = useState('all');
+    const [plateNums, setPlateNums] = useState([]);
+    const [plateSelect, setPlateSelect] = useState([]);
+    const [query, setQuery] = useState('');
+    const [filteredOptions, setFilteredOptions] = useState(plateSelect);
 
-    async function downloadData(date) {
-        var datas = [];
-        for (let plateNum of plateNums) {
-            let fileRef = ref(storage, `${plateNum}_${date}.json`);
-            const fileSnapshot = await getDownloadURL(fileRef);
-            const fileURL = fileSnapshot.toString();
-            const response = await fetch(fileURL);
-            const blob = await response.blob();
-            const arrayBuffer = await new Response(blob).arrayBuffer();
-            const uint8Array = new Uint8Array(arrayBuffer);
-            const textDecoder = new TextDecoder();
-            const jsonString = textDecoder.decode(uint8Array);
-            datas.push(JSON.parse(jsonString));
+    useEffect(() => {
+        let fileRef = ref(storage, `plates.json`);
+        getDownloadURL(fileRef)
+            .then(fileSnapshot => fileSnapshot.toString())
+            .then(fileURL => fetch(fileURL))
+            .then(response => response.blob())
+            .then(blob => new Response(blob).arrayBuffer())
+            .then(arrayBuffer => {
+                const uint8Array = new Uint8Array(arrayBuffer);
+                const textDecoder = new TextDecoder();
+                const jsonString = textDecoder.decode(uint8Array);
+                const data = JSON.parse(jsonString)
+                setPlateNums(data['plates']);
+                setPlateSelect([...data['plates'], 'all']);
+            })
+            .catch(error => console.error(error));
+    }, []);
+
+    useEffect(() => {
+        setFilteredOptions(
+            plateSelect.filter((option) =>
+                option.toLowerCase().includes(query.toLowerCase())
+            )
+        );
+    }, [query, plateSelect]);
+
+    const handleItemSelect = (item) => {
+        setPlate(item);
+        setQuery(`selected: ${item}`);
+    };
+
+    const pickMailDocument = async () => {
+        if (permList.includes(auth.currentUser.email)) {
+            try {
+                try {
+                    const result = await DocumentPicker.getDocumentAsync();
+                    const response = await fetch(result.uri);
+                    const buffer = await response.arrayBuffer();
+                    const workbook = new ExcelJS.Workbook();
+                    var mailList;
+                    await workbook.xlsx.load(buffer)
+                        .then(() => {
+                            // Get the worksheet you want to read data from
+                            const worksheet = workbook.getWorksheet('Sheet1');
+
+                            // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
+                            const column = worksheet.getColumn('A');
+
+                            // Get an array of values in the column
+                            const values = column.values.map(cell => cell.text);
+
+                            // Remove the first element (which is the column header)
+                            values.shift();
+
+                            mailList = values // Output the values in the column
+                        });
+                    let mailObj = {"mail": mailList.map(item => item.toString())}
+                    let jsonData = JSON.stringify(mailObj);
+                    let dataRef = ref(storageRef, `permission.json`);
+                    getMetadata(dataRef)
+                        .then((metadata) => {
+                            // If the file exists, overwrite it with the new data
+                            uploadString(dataRef, jsonData)
+                                .then(() => {
+                                    alert('Data uploaded successfully!');
+                                })
+                                .catch((error) => {
+                                    alert('Error uploading data:', error);
+                                });
+                        })
+                        .catch((error) => {
+                            // If the file does not exist, create a new file with the data
+                            uploadString(dataRef, jsonData)
+                                .then(() => {
+                                    alert('Data uploaded successfully!');
+                                })
+                                .catch((error) => {
+                                    alert('Error uploading data:', error);
+                                });
+                        });
+                } catch (error) {
+                    alert(error.message)
+                }
+            } catch (error) {
+                console.log('Error picking document: ', error);
+            }
+        } else{
+            alert("user does not have permission")
         }
-        return datas;
+    };
+
+    const pickDocument = async () => {
+        let permRef = ref(storage, `permission.json`);
+        const fileSnapshot = await getDownloadURL(permRef);
+        const fileURL = fileSnapshot.toString();
+        const response = await fetch(fileURL);
+        const blob = await response.blob();
+        const arrayBuffer = await new Response(blob).arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const textDecoder = new TextDecoder();
+        const jsonString = textDecoder.decode(uint8Array);
+        const permKV = JSON.parse(jsonString)
+        const permList = permKV['mail']
+        if (permList.includes(auth.currentUser.email)) {
+            try {
+                try {
+                    const result = await DocumentPicker.getDocumentAsync();
+                    const response = await fetch(result.uri);
+                    const buffer = await response.arrayBuffer();
+                    const workbook = new ExcelJS.Workbook();
+                    var plateList;
+                    await workbook.xlsx.load(buffer)
+                        .then(() => {
+                            // Get the worksheet you want to read data from
+                            const worksheet = workbook.getWorksheet('Sheet1');
+
+                            // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
+                            const column = worksheet.getColumn('A');
+
+                            // Get an array of values in the column
+                            const values = column.values;
+
+                            // Remove the first element (which is the column header)
+                            values.shift();
+
+                            plateList = values // Output the values in the column
+                        });
+                    let plateObj = {"plates": plateList.map(item => item.toString())}
+                    let jsonData = JSON.stringify(plateObj);
+                    let dataRef = ref(storageRef, `plates.json`);
+                    getMetadata(dataRef)
+                        .then((metadata) => {
+                            // If the file exists, overwrite it with the new data
+                            uploadString(dataRef, jsonData)
+                                .then(() => {
+                                    alert('Data uploaded successfully!');
+                                })
+                                .catch((error) => {
+                                    alert('Error uploading data:', error);
+                                });
+                        })
+                        .catch((error) => {
+                            // If the file does not exist, create a new file with the data
+                            uploadString(dataRef, jsonData)
+                                .then(() => {
+                                    alert('Data uploaded successfully!');
+                                })
+                                .catch((error) => {
+                                    alert('Error uploading data:', error);
+                                });
+                        });
+                } catch (error) {
+                    alert(error.message)
+                }
+            } catch (error) {
+                console.log('Error picking document: ', error);
+            }
+        } else{
+            alert("user does not have permission")
+        }
+    };
+
+    async function downloadData(date, plateNum) {
+        let fileRef = ref(storage, `${plateNum}_${date}.json`);
+        const fileSnapshot = await getDownloadURL(fileRef);
+        const fileURL = fileSnapshot.toString();
+        const response = await fetch(fileURL);
+        const blob = await response.blob();
+        const arrayBuffer = await new Response(blob).arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const textDecoder = new TextDecoder();
+        const jsonString = textDecoder.decode(uint8Array);
+        return JSON.parse(jsonString);
     }
 
     const handleDownloadPress = async () => {
@@ -103,26 +264,56 @@ export default function Admin({navigation}) {
         const textDecoder = new TextDecoder();
         const jsonString = textDecoder.decode(uint8Array);
         const permKV = JSON.parse(jsonString)
-        const permList = permKV['have']
+        const permList = permKV['mail']
+        let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
+        var buffer;
+        try {
+            const fileSnapshot = await getDownloadURL(fileRef);
+            const fileURL = fileSnapshot.toString();
+            const response = await fetch(fileURL);
+            buffer = await response.arrayBuffer();
+        } catch (error) {
+            alert(error);
+        }
         if (permList.includes(auth.currentUser.email)) {
             const dateStr = formatDate(date);
-            var datas = await downloadData(dateStr);
-            let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
-            var buffer;
-            try {
-                const fileSnapshot = await getDownloadURL(fileRef);
-                const fileURL = fileSnapshot.toString();
-                const response = await fetch(fileURL);
-                buffer = await response.arrayBuffer();
-            } catch (error) {
-                alert(error);
-            }
-            for (let data of datas) {
-                const plateNum = data["plate"];
+            if (plate === 'all') {
+                for (let plateNum of plateNums) {
+                    let data = await downloadData(dateStr, plateNum)
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.load(buffer);
+                    const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
+                    sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
+                    for (let key of Object.keys(data)) {
+                        if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
+                            const value = data[key];
+                            sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                        }
+                    }
+                    workbook.xlsx.writeBuffer({base64: true})
+                        .then(function (xls64) {
+                            var a = document.createElement("a");
+                            var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                            var url = URL.createObjectURL(data);
+                            a.href = url;
+                            a.download = `${plateNum}_${dateStr}.xlsx`;
+                            document.body.appendChild(a);
+                            a.click();
+                            setTimeout(function () {
+                                document.body.removeChild(a);
+                                window.URL.revokeObjectURL(url);
+                            }, 0);
+                        })
+                        .catch(function (error) {
+                            console.log(error.message);
+                        });
+                }
+            } else {
+                let data = await downloadData(dateStr, plate)
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
+                sheet.getCell("C3").value = `รถทะเบียน ${plate} ตรวจสอบวันที่ ${data["date"]}`
                 for (let key of Object.keys(data)) {
                     if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
                         const value = data[key];
@@ -135,7 +326,7 @@ export default function Admin({navigation}) {
                         var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
                         var url = URL.createObjectURL(data);
                         a.href = url;
-                        a.download = `${plateNum}_${dateStr}.xlsx`;
+                        a.download = `${plate}_${dateStr}.xlsx`;
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
@@ -163,7 +354,29 @@ export default function Admin({navigation}) {
 
     return (
         <View style={styles.dlContainer}>
-            <SearchableDropdownWrapper style={styles.searchAbsolute} onItemSelect={setPlate} options={plateNums}/>
+            <View style={styles.searchAbsolute}>
+                <TextInput
+                    style={styles.input}
+                    value={query}
+                    placeholder="Search"
+                    onChangeText={(text) => setQuery(text)}
+                />
+                {filteredOptions.length > 0 && (
+                    <FlatList
+                        data={filteredOptions}
+                        renderItem={({item}) => (
+                            <TouchableOpacity
+                                style={styles.item}
+                                onPress={() => handleItemSelect(item)}
+                            >
+                                <Text>{item}</Text>
+                            </TouchableOpacity>
+                        )}
+                        keyExtractor={(item) => item}
+                        style={styles.list}
+                    />
+                )}
+            </View>
             <MyWebDatePicker
                 date={date}
                 setDate={setDate}
@@ -173,6 +386,12 @@ export default function Admin({navigation}) {
             </TouchableOpacity>
             <TouchableOpacity style={styles.restBtn} onPress={returnPress}>
                 <Text>Return</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.restBtn} onPress={pickDocument}>
+                <Text>Upload Plate List</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.restBtn} onPress={pickMailDocument}>
+                <Text>Upload Admin List</Text>
             </TouchableOpacity>
         </View>
     );
