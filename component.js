@@ -280,7 +280,7 @@ const Screen = ({navigation}) => {
 
     const handleItemSelect = (item) => {
         setPlate(item);
-        setQuery(`selected: ${item}`);
+        setQuery(item.toString());
     };
 
 
@@ -368,7 +368,7 @@ const Screen = ({navigation}) => {
                 <TextInput
                     style={styles.input}
                     value={query}
-                    placeholder="Search"
+                    placeholder="ค้นหา"
                     onChangeText={(text) => setQuery(text)}
                 />
                 {filteredOptions.length > 0 && (
@@ -390,17 +390,17 @@ const Screen = ({navigation}) => {
             <ImageBackground source={require('./assets/grey.png')} style={styles.center}>
                 <TouchableOpacity style={styles.buttonOne} onPress={handleSubmitPress}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>Submit</Text>
+                        <Text style={styles.btnTxt}>บันทึก</Text>
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonRest} onPress={handleAdminPress}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>Admin</Text>
+                        <Text style={styles.btnTxt}>ดาวน์โหลดข้อมูล</Text>
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.buttonRest} onPress={handleSignOutPress}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>Sign Out</Text>
+                        <Text style={styles.btnTxt}>ออกจากระบบ</Text>
                     </View>
                 </TouchableOpacity>
             </ImageBackground>

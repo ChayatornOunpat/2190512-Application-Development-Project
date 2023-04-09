@@ -106,7 +106,7 @@ export default function Admin({navigation}) {
 
     const handleItemSelect = (item) => {
         setPlate(item);
-        setQuery(`selected: ${item}`);
+        setQuery(item.toString());
     };
 
     const pickMailDocument = async () => {
@@ -358,7 +358,7 @@ export default function Admin({navigation}) {
                 <TextInput
                     style={styles.input}
                     value={query}
-                    placeholder="Search"
+                    placeholder="ค้นหา"
                     onChangeText={(text) => setQuery(text)}
                 />
                 {filteredOptions.length > 0 && (
@@ -382,16 +382,16 @@ export default function Admin({navigation}) {
                 setDate={setDate}
             />
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
-                <Text>Download</Text>
+                <Text>ดาวน์โหลด</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.restBtn} onPress={returnPress}>
-                <Text>Return</Text>
+                <Text>ย้อนกลับ</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.restBtn} onPress={pickDocument}>
-                <Text>Upload Plate List</Text>
+                <Text>อัปโหลดรายการเทียนรถ</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.restBtn} onPress={pickMailDocument}>
-                <Text>Upload Admin List</Text>
+                <Text>อัปโหลดรายการแอดมิน</Text>
             </TouchableOpacity>
         </View>
     );

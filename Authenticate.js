@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+﻿import React, {useState} from "react";
 import {
     Text,
     View,
@@ -37,7 +37,7 @@ export default function Authenticate({navigation}) {
                 onChangeText={(password) => setPassword(password)}
             />
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
-                <Text>Authenticate</Text>
+                <Text>เข้าสู่ระบบ</Text>
             </TouchableOpacity>
         </View>
     );

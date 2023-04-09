@@ -1,4 +1,4 @@
-import {
+﻿import {
     View,
     Text,
     TouchableWithoutFeedback,
@@ -38,13 +38,13 @@ function CheckBoxWrapper({label, value, setValue, note, setNote, fix, setFix}) {
                 <View>
                     <TextInput
                         style={styles.noteAndFix}
-                        placeholder="Note"
+                        placeholder="บันทึก"
                         onChangeText={text => setNote(text)}
                         value={note}
                     />
                     <TextInput
                         style={styles.noteAndFix}
-                        placeholder="Fix"
+                        placeholder="จะแก้ไขเมื่อ"
                         onChangeText={text => setFix(text)}
                         value={fix}
                     />
