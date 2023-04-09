@@ -142,20 +142,20 @@ export default function Admin({navigation}) {
                             // If the file exists, overwrite it with the new data
                             uploadString(dataRef, jsonData)
                                 .then(() => {
-                                    alert('Data uploaded successfully!');
+                                    alert('อัปโหลดข้อมูลสำเร็จ');
                                 })
                                 .catch((error) => {
-                                    alert('Error uploading data:', error);
+                                    alert('เกิดปัญหาในการอัปโหลด:', error);
                                 });
                         })
                         .catch((error) => {
                             // If the file does not exist, create a new file with the data
                             uploadString(dataRef, jsonData)
                                 .then(() => {
-                                    alert('Data uploaded successfully!');
+                                    alert('อัปโหลดข้อมูลสำเร็จ');
                                 })
                                 .catch((error) => {
-                                    alert('Error uploading data:', error);
+                                    alert('เกิดปัญหาในการอัปโหลด:', error);
                                 });
                         });
                 } catch (error) {
@@ -165,7 +165,7 @@ export default function Admin({navigation}) {
                 console.log('Error picking document: ', error);
             }
         } else{
-            alert("user does not have permission")
+            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
         }
     };
 
@@ -213,20 +213,20 @@ export default function Admin({navigation}) {
                             // If the file exists, overwrite it with the new data
                             uploadString(dataRef, jsonData)
                                 .then(() => {
-                                    alert('Data uploaded successfully!');
+                                    alert('อัปโหลดข้อมูลสำเร็จ');
                                 })
                                 .catch((error) => {
-                                    alert('Error uploading data:', error);
+                                    alert('เกิดปัญหาในการอัปโหลด:', error);
                                 });
                         })
                         .catch((error) => {
                             // If the file does not exist, create a new file with the data
                             uploadString(dataRef, jsonData)
                                 .then(() => {
-                                    alert('Data uploaded successfully!');
+                                    alert('อัปโหลดข้อมูลสำเร็จ');
                                 })
                                 .catch((error) => {
-                                    alert('Error uploading data:', error);
+                                    alert('เกิดปัญหาในการอัปโหลด:', error);
                                 });
                         });
                 } catch (error) {
@@ -236,7 +236,7 @@ export default function Admin({navigation}) {
                 console.log('Error picking document: ', error);
             }
         } else{
-            alert("user does not have permission")
+            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
         }
     };
 
@@ -339,7 +339,7 @@ export default function Admin({navigation}) {
                     });
             }
         } else {
-            alert("user does not have permission")
+            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
         }
     }
 

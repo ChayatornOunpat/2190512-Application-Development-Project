@@ -137,7 +137,7 @@ const Screen = ({navigation}) => {
         if (permList.includes(auth.currentUser.email)) {
             navigation.navigate('Admin')
         } else {
-            alert("you doesn't have the permission")
+            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
         }
     }
 
@@ -260,20 +260,20 @@ const Screen = ({navigation}) => {
                 // If the file exists, overwrite it with the new data
                 uploadString(dataRef, jsonData)
                     .then(() => {
-                        alert('Data uploaded successfully!');
+                        alert('อัปโหลดข้อมูลสำเร็จ');
                     })
                     .catch((error) => {
-                        alert('Error uploading data:', error);
+                        alert('เกิดปัญหาในการอัปโหลด:', error);
                     });
             })
             .catch((error) => {
                 // If the file does not exist, create a new file with the data
                 uploadString(dataRef, jsonData)
                     .then(() => {
-                        alert('Data uploaded successfully!');
+                        alert('อัปโหลดข้อมูลสำเร็จ');
                     })
                     .catch((error) => {
-                        alert('Error uploading data:', error);
+                        alert('เกิดปัญหาในการอัปโหลด:', error);
                     });
             });
     }
