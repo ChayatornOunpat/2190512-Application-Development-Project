@@ -1,15 +1,18 @@
-import React, {useEffect, useState, useReducer} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Text,
     View,
-    TouchableOpacity, TextInput, FlatList,
+    TouchableOpacity,
+    TextInput,
+    FlatList,
 } from "react-native";
 import {styles} from "./styles";
 import {createElement} from 'react-native-web';
 import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
-import {auth, storage, storageRef} from "./firebase-config";
+import {auth, db, storage, storageRef} from "./firebase-config";
 import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from "exceljs";
+import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
 
 const month = {
     "Jan": "01",
@@ -69,8 +72,6 @@ const MyWebDatePicker = ({date, setDate}) => {
 
 export default function Admin({navigation}) {
     const currentDate = new Date();
-    const utcOffset = 7;
-    const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
     const [date, setDate] = useState(new Date(currentDate.getTime()));
     const [plate, setPlate] = useState('all');
     const [plateNums, setPlateNums] = useState([]);
@@ -78,22 +79,23 @@ export default function Admin({navigation}) {
     const [query, setQuery] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(plateSelect);
 
+    function readDataFromFirestore(key, documentRef) {
+        return getDoc(documentRef).then((documentSnapshot) => {
+            if (documentSnapshot.exists()) {
+                const data = documentSnapshot.data();
+                return data[key];
+            } else {
+                return null;
+            }
+        });
+    }
+
     useEffect(() => {
-        let fileRef = ref(storage, `plates.json`);
-        getDownloadURL(fileRef)
-            .then(fileSnapshot => fileSnapshot.toString())
-            .then(fileURL => fetch(fileURL))
-            .then(response => response.blob())
-            .then(blob => new Response(blob).arrayBuffer())
-            .then(arrayBuffer => {
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const textDecoder = new TextDecoder();
-                const jsonString = textDecoder.decode(uint8Array);
-                const data = JSON.parse(jsonString)
-                setPlateNums(data['plates']);
-                setPlateSelect([...data['plates'], 'all']);
-            })
-            .catch(error => console.error(error));
+        const documentRef = doc(db, 'plates', 'plates');
+        readDataFromFirestore('plates', documentRef).then((data) => {
+            setPlateNums(data)
+            setPlateSelect([...data, 'all']);
+        })
     }, []);
 
     useEffect(() => {
@@ -109,134 +111,62 @@ export default function Admin({navigation}) {
         setQuery(item.toString());
     };
 
-    const pickMailDocument = async () => {
-        if (permList.includes(auth.currentUser.email)) {
-            try {
-                try {
-                    const result = await DocumentPicker.getDocumentAsync();
-                    const response = await fetch(result.uri);
-                    const buffer = await response.arrayBuffer();
-                    const workbook = new ExcelJS.Workbook();
-                    var mailList;
-                    await workbook.xlsx.load(buffer)
-                        .then(() => {
-                            // Get the worksheet you want to read data from
-                            const worksheet = workbook.getWorksheet('Sheet1');
-
-                            // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
-                            const column = worksheet.getColumn('A');
-
-                            // Get an array of values in the column
-                            const values = column.values.map(cell => cell.text);
-
-                            // Remove the first element (which is the column header)
-                            values.shift();
-
-                            mailList = values // Output the values in the column
-                        });
-                    let mailObj = {"mail": mailList.map(item => item.toString())}
-                    let jsonData = JSON.stringify(mailObj);
-                    let dataRef = ref(storageRef, `permission.json`);
-                    getMetadata(dataRef)
-                        .then((metadata) => {
-                            // If the file exists, overwrite it with the new data
-                            uploadString(dataRef, jsonData)
-                                .then(() => {
-                                    alert('อัปโหลดข้อมูลสำเร็จ');
-                                })
-                                .catch((error) => {
-                                    alert('เกิดปัญหาในการอัปโหลด:', error);
-                                });
-                        })
-                        .catch((error) => {
-                            // If the file does not exist, create a new file with the data
-                            uploadString(dataRef, jsonData)
-                                .then(() => {
-                                    alert('อัปโหลดข้อมูลสำเร็จ');
-                                })
-                                .catch((error) => {
-                                    alert('เกิดปัญหาในการอัปโหลด:', error);
-                                });
-                        });
-                } catch (error) {
-                    alert(error.message)
-                }
-            } catch (error) {
-                console.log('Error picking document: ', error);
-            }
-        } else{
-            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
-        }
-    };
-
     const pickDocument = async () => {
-        let permRef = ref(storage, `permission.json`);
-        const fileSnapshot = await getDownloadURL(permRef);
-        const fileURL = fileSnapshot.toString();
-        const response = await fetch(fileURL);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const textDecoder = new TextDecoder();
-        const jsonString = textDecoder.decode(uint8Array);
-        const permKV = JSON.parse(jsonString)
-        const permList = permKV['mail']
-        if (permList.includes(auth.currentUser.email)) {
+        try {
             try {
-                try {
-                    const result = await DocumentPicker.getDocumentAsync();
-                    const response = await fetch(result.uri);
-                    const buffer = await response.arrayBuffer();
-                    const workbook = new ExcelJS.Workbook();
-                    var plateList;
-                    await workbook.xlsx.load(buffer)
-                        .then(() => {
-                            // Get the worksheet you want to read data from
-                            const worksheet = workbook.getWorksheet('Sheet1');
+                const result = await DocumentPicker.getDocumentAsync();
+                const response = await fetch(result.uri);
+                const buffer = await response.arrayBuffer();
+                const workbook = new ExcelJS.Workbook();
+                var plateList;
+                await workbook.xlsx.load(buffer)
+                    .then(() => {
+                        // Get the worksheet you want to read data from
+                        const worksheet = workbook.getWorksheet('Sheet1');
 
-                            // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
-                            const column = worksheet.getColumn('A');
+                        // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
+                        const column = worksheet.getColumn('A');
 
-                            // Get an array of values in the column
-                            const values = column.values;
+                        // Get an array of values in the column
+                        const values = column.values;
 
-                            // Remove the first element (which is the column header)
-                            values.shift();
+                        // Remove the first element (which is the column header)
+                        values.shift();
 
-                            plateList = values // Output the values in the column
-                        });
-                    let plateObj = {"plates": plateList.map(item => item.toString())}
-                    let jsonData = JSON.stringify(plateObj);
-                    let dataRef = ref(storageRef, `plates.json`);
-                    getMetadata(dataRef)
-                        .then((metadata) => {
-                            // If the file exists, overwrite it with the new data
-                            uploadString(dataRef, jsonData)
-                                .then(() => {
-                                    alert('อัปโหลดข้อมูลสำเร็จ');
-                                })
-                                .catch((error) => {
-                                    alert('เกิดปัญหาในการอัปโหลด:', error);
-                                });
+                        plateList = values // Output the values in the column
+                    });
+                const adminDocRef = doc(db, 'plates', 'plates')
+                getDoc(adminDocRef).then((docSnapshot) => {
+                    if (docSnapshot.exists()) {
+                        // Update the document if it exists
+                        updateDoc(adminDocRef, {
+                            'plates': plateList
                         })
-                        .catch((error) => {
-                            // If the file does not exist, create a new file with the data
-                            uploadString(dataRef, jsonData)
-                                .then(() => {
-                                    alert('อัปโหลดข้อมูลสำเร็จ');
-                                })
-                                .catch((error) => {
-                                    alert('เกิดปัญหาในการอัปโหลด:', error);
-                                });
-                        });
-                } catch (error) {
-                    alert(error.message)
-                }
+                            .then(() => {
+                                alert('อัปโหลดข้อมูลสำเร็จ');
+                            })
+                            .catch((error) => {
+                                alert(`เกิดปัญหาในการอัปโหลด: ${error}`);
+                            });
+                    } else {
+                        setDoc(adminDocRef, {
+                            'plates': plateList
+                        })
+                            .then(() => {
+                                alert('อัปโหลดข้อมูลสำเร็จ');
+                            })
+                            .catch((error) => {
+                                alert(`เกิดปัญหาในการอัปโหลด: ${error}`);
+                            });
+                    }
+                }).catch((error) => {
+                    alert(`เกิดปัญหาในการอัปโหลด: ${error}`);
+                });
             } catch (error) {
-                console.log('Error picking document: ', error);
+                alert(`เกิดปัญหาในการอัปโหลด: ${error.message}`);
             }
-        } else{
-            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
+        } catch (error) {
+            alert(`เกิดปัญหาในการอัปโหลด: ${error}`);
         }
     };
 
@@ -254,17 +184,6 @@ export default function Admin({navigation}) {
     }
 
     const handleDownloadPress = async () => {
-        let permRef = ref(storage, `permission.json`);
-        const fileSnapshot = await getDownloadURL(permRef);
-        const fileURL = fileSnapshot.toString();
-        const response = await fetch(fileURL);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const textDecoder = new TextDecoder();
-        const jsonString = textDecoder.decode(uint8Array);
-        const permKV = JSON.parse(jsonString)
-        const permList = permKV['mail']
         let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
         var buffer;
         try {
@@ -274,46 +193,16 @@ export default function Admin({navigation}) {
             buffer = await response.arrayBuffer();
         } catch (error) {
             alert(error);
+            return
         }
-        if (permList.includes(auth.currentUser.email)) {
-            const dateStr = formatDate(date);
-            if (plate === 'all') {
-                for (let plateNum of plateNums) {
-                    let data = await downloadData(dateStr, plateNum)
-                    const workbook = new ExcelJS.Workbook();
-                    await workbook.xlsx.load(buffer);
-                    const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                    sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
-                    for (let key of Object.keys(data)) {
-                        if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
-                            const value = data[key];
-                            sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
-                        }
-                    }
-                    workbook.xlsx.writeBuffer({base64: true})
-                        .then(function (xls64) {
-                            var a = document.createElement("a");
-                            var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-                            var url = URL.createObjectURL(data);
-                            a.href = url;
-                            a.download = `${plateNum}_${dateStr}.xlsx`;
-                            document.body.appendChild(a);
-                            a.click();
-                            setTimeout(function () {
-                                document.body.removeChild(a);
-                                window.URL.revokeObjectURL(url);
-                            }, 0);
-                        })
-                        .catch(function (error) {
-                            console.log(error.message);
-                        });
-                }
-            } else {
-                let data = await downloadData(dateStr, plate)
+        const dateStr = formatDate(date);
+        if (plate === 'all') {
+            for (let plateNum of plateNums) {
+                let data = await downloadData(dateStr, plateNum)
                 const workbook = new ExcelJS.Workbook();
                 await workbook.xlsx.load(buffer);
                 const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plate} ตรวจสอบวันที่ ${data["date"]}`
+                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
                 for (let key of Object.keys(data)) {
                     if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
                         const value = data[key];
@@ -326,7 +215,7 @@ export default function Admin({navigation}) {
                         var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
                         var url = URL.createObjectURL(data);
                         a.href = url;
-                        a.download = `${plate}_${dateStr}.xlsx`;
+                        a.download = `${plateNum}_${dateStr}.xlsx`;
                         document.body.appendChild(a);
                         a.click();
                         setTimeout(function () {
@@ -339,7 +228,34 @@ export default function Admin({navigation}) {
                     });
             }
         } else {
-            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
+            let data = await downloadData(dateStr, plate)
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(buffer);
+            const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
+            sheet.getCell("C3").value = `รถทะเบียน ${plate} ตรวจสอบวันที่ ${data["date"]}`
+            for (let key of Object.keys(data)) {
+                if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
+                    const value = data[key];
+                    sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                }
+            }
+            workbook.xlsx.writeBuffer({base64: true})
+                .then(function (xls64) {
+                    var a = document.createElement("a");
+                    var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                    var url = URL.createObjectURL(data);
+                    a.href = url;
+                    a.download = `${plate}_${dateStr}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(function () {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 0);
+                })
+                .catch(function (error) {
+                    console.log(error.message);
+                });
         }
     }
 
@@ -389,9 +305,6 @@ export default function Admin({navigation}) {
             </TouchableOpacity>
             <TouchableOpacity style={styles.restBtn} onPress={pickDocument}>
                 <Text>อัปโหลดรายการเทียนรถ</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.restBtn} onPress={pickMailDocument}>
-                <Text>อัปโหลดรายการแอดมิน</Text>
             </TouchableOpacity>
         </View>
     );

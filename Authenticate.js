@@ -1,4 +1,4 @@
-﻿import React, {useState} from "react";
+﻿import React, {useState, useEffect} from "react";
 import {
     Text,
     View,
@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import {styles} from "./styles";
 import {auth} from './firebase-config';
+
 import {signInWithEmailAndPassword} from "firebase/auth";
 
 export default function Authenticate({navigation}) {

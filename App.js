@@ -8,7 +8,6 @@ import {Authenticate} from "./Authenticate";
 import Admin from "./Admin";
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import {styles} from "./styles";
 
 
 const Stack = createStackNavigator();

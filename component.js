@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
-import {auth, storage, storageRef} from "./firebase-config";
+import { doc, getDoc } from 'firebase/firestore';
+import {auth, storage, storageRef, db} from "./firebase-config";
 import {FlatList, ImageBackground, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {styles} from "./styles";
 import {CheckBoxWrapper} from "./checkbox";
@@ -96,21 +97,22 @@ const Screen = ({navigation}) => {
     const [plateNums, setPlateNums] = useState([]);
     const [filteredOptions, setFilteredOptions] = useState(plateNums);
 
+    function readDataFromFirestore(key) {
+        const documentRef = doc(db, 'plates', 'plates');
+        return getDoc(documentRef).then((documentSnapshot) => {
+            if (documentSnapshot.exists()) {
+                const data = documentSnapshot.data();
+                return data[key];
+            } else {
+                return null;
+            }
+        });
+    }
+
     useEffect(() => {
-        let fileRef = ref(storage, `plates.json`);
-        getDownloadURL(fileRef)
-            .then(fileSnapshot => fileSnapshot.toString())
-            .then(fileURL => fetch(fileURL))
-            .then(response => response.blob())
-            .then(blob => new Response(blob).arrayBuffer())
-            .then(arrayBuffer => {
-                const uint8Array = new Uint8Array(arrayBuffer);
-                const textDecoder = new TextDecoder();
-                const jsonString = textDecoder.decode(uint8Array);
-                const data = JSON.parse(jsonString)
-                setPlateNums(data['plates']);
-            })
-            .catch(error => console.error(error));
+        readDataFromFirestore('plates').then((data) => {
+            setPlateNums(data)
+        })
     }, []);
 
     useEffect(() => {
@@ -122,23 +124,7 @@ const Screen = ({navigation}) => {
     }, [query, plateNums]);
 
     const handleAdminPress = async () => {
-        let permRef = ref(storage, `permission.json`);
-        const fileSnapshot = await getDownloadURL(permRef);
-        const fileURL = fileSnapshot.toString();
-        const response = await fetch(fileURL);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const textDecoder = new TextDecoder();
-        const jsonString = textDecoder.decode(uint8Array);
-        const permKV = JSON.parse(jsonString)
-        const permList = permKV['mail']
-        console.log(permList);
-        if (permList.includes(auth.currentUser.email)) {
-            navigation.navigate('Admin')
-        } else {
-            alert("คุณไม่มีสิทธิเข้าถึงข้อมูล")
-        }
+        navigation.navigate('Admin')
     }
 
     function handleSignOutPress() {
