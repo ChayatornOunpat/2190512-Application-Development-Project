@@ -123,6 +123,17 @@ const styles = StyleSheet.create({
         backgroundColor: '#d2d2d2',
         color: '#000000'
     },
+    nameInput: {
+        width: '80%',
+        height: 40,
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginTop: 40,
+        marginLeft: 15,
+        backgroundColor: '#d2d2d2',
+        color: '#000000'
+    },
     list: {
         width: '80%',
         maxHeight: 200,

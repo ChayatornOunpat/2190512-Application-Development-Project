@@ -78,6 +78,7 @@ export default function Admin({navigation}) {
     const [plateSelect, setPlateSelect] = useState([]);
     const [query, setQuery] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(plateSelect);
+    const [selected, setSelected] = useState(false)
 
     function readDataFromFirestore(key, documentRef) {
         return getDoc(documentRef).then((documentSnapshot) => {
@@ -109,6 +110,7 @@ export default function Admin({navigation}) {
     const handleItemSelect = (item) => {
         setPlate(item);
         setQuery(item.toString());
+        setSelected(true)
     };
 
     const pickDocument = async () => {
@@ -275,9 +277,9 @@ export default function Admin({navigation}) {
                     style={styles.input}
                     value={query}
                     placeholder="ค้นหา"
-                    onChangeText={(text) => setQuery(text)}
+                    onChangeText={(text) => {setQuery(text); setSelected(false)}}
                 />
-                {filteredOptions.length > 0 && (
+                {filteredOptions.length > 0 && !selected && (
                     <FlatList
                         data={filteredOptions}
                         renderItem={({item}) => (

@@ -6,6 +6,9 @@ import {FlatList, ImageBackground, Text, TextInput, TouchableOpacity, View} from
 import {styles} from "./styles";
 import {CheckBoxWrapper} from "./checkbox";
 import {signOut} from "firebase/auth";
+import * as Location from 'expo-location';
+import Geocoder from 'react-native-geocoding';
+import {mapsKey} from "./api-key";
 
 const Screen = ({navigation}) => {
     const [law, setLaw] = useState(false);
@@ -96,6 +99,12 @@ const Screen = ({navigation}) => {
     const [query, setQuery] = useState('');
     const [plateNums, setPlateNums] = useState([]);
     const [filteredOptions, setFilteredOptions] = useState(plateNums);
+    const [name, setName] = useState('')
+    const [selected, setSelected] = useState(false)
+
+    useEffect(() => {
+        Geocoder.init(mapsKey);
+    }, [Geocoder])
 
     function readDataFromFirestore(key) {
         const documentRef = doc(db, 'plates', 'plates');
@@ -134,6 +143,30 @@ const Screen = ({navigation}) => {
 
     }
 
+    async function getLocation() {
+        let {status} = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            console.log('Permission to access location was denied');
+            return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        try {
+            const response = await Geocoder.from({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+
+            const {results} = response;
+            if (results && results.length > 0) {
+                const {formatted_address} = results[0];
+                return formatted_address
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     const handleSubmitPress = async () => {
         if (!plate) {
             alert("โปรดใส่ทะเบียนรถก่อนส่ง")
@@ -145,6 +178,9 @@ const Screen = ({navigation}) => {
         const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
         const utcDate = new Date(currentDate.getTime() + offsetMilliseconds);
         let dateStr = utcDate.toISOString().slice(0, 10);
+        let timeStr = utcDate.toISOString().slice(11, 19);
+        const dateTime = dateStr + ' ' + timeStr
+        const location = await getLocation()
 
         let data = {
             'law': law,
@@ -232,7 +268,9 @@ const Screen = ({navigation}) => {
             'structuralintegrity_fix': structuralintegrityFix,
             'fastener_fix': fastenerFix,
             'cover_fix': coverFix,
-            'date': dateStr
+            'date': dateTime,
+            'name': name,
+            'startLocation': location
         }
         // Convert the data object to a JSON string
         let jsonData = JSON.stringify(data);
@@ -267,6 +305,7 @@ const Screen = ({navigation}) => {
     const handleItemSelect = (item) => {
         setPlate(item);
         setQuery(item.toString());
+        setSelected(true)
     };
 
 
@@ -350,14 +389,20 @@ const Screen = ({navigation}) => {
             <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
                              setFix={setCoverFix}
                              note={coverNote} setNote={setCoverNote}/>
+            <TextInput
+                style={styles.nameInput}
+                value={name}
+                placeholder="name"
+                onChangeText={(text) => setName(text)}
+            />
             <View style={styles.search}>
                 <TextInput
                     style={styles.input}
                     value={query}
-                    placeholder="ค้นหา"
-                    onChangeText={(text) => setQuery(text)}
+                    placeholder="search for license plate"
+                    onChangeText={(text) => {setQuery(text); setSelected(false)}}
                 />
-                {filteredOptions.length > 0 && (
+                {filteredOptions.length > 0 && !selected && (
                     <FlatList
                         data={filteredOptions}
                         renderItem={({item}) => (
