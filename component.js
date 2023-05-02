@@ -1,7 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
-import { doc, getDoc } from 'firebase/firestore';
-import {auth, storage, storageRef, db} from "./firebase-config";
+import {doc, getDoc} from 'firebase/firestore';
+import {update as rtupdate} from "firebase/database";
+import {ref as rtref} from "firebase/database";
+import {onValue} from "firebase/database";
+import {auth, storage, storageRef, db, rtdb} from "./firebase-config";
 import {FlatList, ImageBackground, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {styles} from "./styles";
 import {CheckBoxWrapper} from "./checkbox";
@@ -106,6 +109,17 @@ const Screen = ({navigation}) => {
         Geocoder.init(mapsKey);
     }, [Geocoder])
 
+    useEffect(() => {
+        const uid = auth.currentUser.uid
+        const workingRef = rtref(rtdb, `${uid}/working`);
+        onValue(workingRef, (snapshot) => {
+            const value = snapshot.val();
+            if (value) {
+                navigation.navigate('Driving')
+            }
+        });
+    }, []);
+
     function readDataFromFirestore(key) {
         const documentRef = doc(db, 'plates', 'plates');
         return getDoc(documentRef).then((documentSnapshot) => {
@@ -146,7 +160,7 @@ const Screen = ({navigation}) => {
     async function getLocation() {
         let {status} = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-            console.log('Permission to access location was denied');
+            alert('Permission to access location was denied');
             return;
         }
 
@@ -163,7 +177,7 @@ const Screen = ({navigation}) => {
                 return formatted_address
             }
         } catch (error) {
-            console.error(error);
+            alert(error);
         }
     }
 
@@ -180,126 +194,183 @@ const Screen = ({navigation}) => {
         let dateStr = utcDate.toISOString().slice(0, 10);
         let timeStr = utcDate.toISOString().slice(11, 19);
         const dateTime = dateStr + ' ' + timeStr
-        const location = await getLocation()
 
-        let data = {
-            'law': law,
-            'tax': tax,
-            'insurance': insurance,
-            'passport': passport,
-            'headlight': headlight,
-            'turnlight': turnlight,
-            'toplight': toplight,
-            'lubeoil': lubeoil,
-            'tankcoolant': tankcoolant,
-            'percipitation': percipitation,
-            'opsname': opsname,
-            'doormirror': doormirror,
-            'tire': tire,
-            'tirehub': tirehub,
-            'tirehub2': tirehub2,
-            'tirehub3': tirehub3,
-            'tirehub4': tirehub4,
-            'spare': spare,
-            'pressure': pressure,
-            'extinguisher': extinguisher,
-            'tiresupport': tiresupport,
-            'cone': cone,
-            'breaklight': breaklight,
-            'reverselight': reverselight,
-            'backturnlight': backturnlight,
-            'structuralintegrity': structuralintegrity,
-            'fastener': fastener,
-            'cover': cover,
-            'plate': plate,
-            'law_note': lawNote,
-            'tax_note': taxNote,
-            'insurance_note': insuranceNote,
-            'passport_note': passportNote,
-            'headlight_note': headlightNote,
-            'turnlight_note': turnlightNote,
-            'toplight_note': toplightNote,
-            'lubeoil_note': lubeoilNote,
-            'tankcoolant_note': tankcoolantNote,
-            'percipitation_note': percipitationNote,
-            'opsname_note': opsnameNote,
-            'doormirror_note': doormirrorNote,
-            'tire_note': tireNote,
-            'tirehub_note': tirehubNote,
-            'tirehub2_note': tirehub2Note,
-            'tirehub3_note': tirehub3Note,
-            'tirehub4_note': tirehub4Note,
-            'spare_note': spareNote,
-            'pressure_note': pressureNote,
-            'extinguisher_note': extinguisherNote,
-            'tiresupport_note': tiresupportNote,
-            'cone_note': coneNote,
-            'breaklight_note': breaklightNote,
-            'reverselight_note': reverselightNote,
-            'backturnlight_note': backturnlightNote,
-            'structuralintegrity_note': structuralintegrityNote,
-            'fastener_note': fastenerNote,
-            'cover_note': coverNote,
-            'law_fix': lawFix,
-            'tax_fix': taxFix,
-            'insurance_fix': insuranceFix,
-            'passport_fix': passportFix,
-            'headlight_fix': headlightFix,
-            'turnlight_fix': turnlightFix,
-            'toplight_fix': toplightFix,
-            'lubeoil_fix': lubeoilFix,
-            'tankcoolant_fix': tankcoolantFix,
-            'percipitation_fix': percipitationFix,
-            'opsname_fix': opsnameFix,
-            'doormirror_fix': doormirrorFix,
-            'tire_fix': tireFix,
-            'tirehub_fix': tirehubFix,
-            'tirehub2_fix': tirehub2Fix,
-            'tirehub3_fix': tirehub3Fix,
-            'tirehub4_fix': tirehub4Fix,
-            'spare_fix': spareFix,
-            'pressure_fix': pressureFix,
-            'extinguisher_fix': extinguisherFix,
-            'tiresupport_fix': tiresupportFix,
-            'cone_fix': coneFix,
-            'breaklight_fix': breaklightFix,
-            'reverselight_fix': reverselightFix,
-            'backturnlight_fix': backturnlightFix,
-            'structuralintegrity_fix': structuralintegrityFix,
-            'fastener_fix': fastenerFix,
-            'cover_fix': coverFix,
-            'date': dateTime,
-            'name': name,
-            'startLocation': location
+        async function inner(count) {
+            const location = await getLocation()
+
+            if (location === undefined) {
+                return
+            }
+
+            let data = {
+                'law': law,
+                'tax': tax,
+                'insurance': insurance,
+                'passport': passport,
+                'headlight': headlight,
+                'turnlight': turnlight,
+                'toplight': toplight,
+                'lubeoil': lubeoil,
+                'tankcoolant': tankcoolant,
+                'percipitation': percipitation,
+                'opsname': opsname,
+                'doormirror': doormirror,
+                'tire': tire,
+                'tirehub': tirehub,
+                'tirehub2': tirehub2,
+                'tirehub3': tirehub3,
+                'tirehub4': tirehub4,
+                'spare': spare,
+                'pressure': pressure,
+                'extinguisher': extinguisher,
+                'tiresupport': tiresupport,
+                'cone': cone,
+                'breaklight': breaklight,
+                'reverselight': reverselight,
+                'backturnlight': backturnlight,
+                'structuralintegrity': structuralintegrity,
+                'fastener': fastener,
+                'cover': cover,
+                'plate': plate,
+                'law_note': lawNote,
+                'tax_note': taxNote,
+                'insurance_note': insuranceNote,
+                'passport_note': passportNote,
+                'headlight_note': headlightNote,
+                'turnlight_note': turnlightNote,
+                'toplight_note': toplightNote,
+                'lubeoil_note': lubeoilNote,
+                'tankcoolant_note': tankcoolantNote,
+                'percipitation_note': percipitationNote,
+                'opsname_note': opsnameNote,
+                'doormirror_note': doormirrorNote,
+                'tire_note': tireNote,
+                'tirehub_note': tirehubNote,
+                'tirehub2_note': tirehub2Note,
+                'tirehub3_note': tirehub3Note,
+                'tirehub4_note': tirehub4Note,
+                'spare_note': spareNote,
+                'pressure_note': pressureNote,
+                'extinguisher_note': extinguisherNote,
+                'tiresupport_note': tiresupportNote,
+                'cone_note': coneNote,
+                'breaklight_note': breaklightNote,
+                'reverselight_note': reverselightNote,
+                'backturnlight_note': backturnlightNote,
+                'structuralintegrity_note': structuralintegrityNote,
+                'fastener_note': fastenerNote,
+                'cover_note': coverNote,
+                'law_fix': lawFix,
+                'tax_fix': taxFix,
+                'insurance_fix': insuranceFix,
+                'passport_fix': passportFix,
+                'headlight_fix': headlightFix,
+                'turnlight_fix': turnlightFix,
+                'toplight_fix': toplightFix,
+                'lubeoil_fix': lubeoilFix,
+                'tankcoolant_fix': tankcoolantFix,
+                'percipitation_fix': percipitationFix,
+                'opsname_fix': opsnameFix,
+                'doormirror_fix': doormirrorFix,
+                'tire_fix': tireFix,
+                'tirehub_fix': tirehubFix,
+                'tirehub2_fix': tirehub2Fix,
+                'tirehub3_fix': tirehub3Fix,
+                'tirehub4_fix': tirehub4Fix,
+                'spare_fix': spareFix,
+                'pressure_fix': pressureFix,
+                'extinguisher_fix': extinguisherFix,
+                'tiresupport_fix': tiresupportFix,
+                'cone_fix': coneFix,
+                'breaklight_fix': breaklightFix,
+                'reverselight_fix': reverselightFix,
+                'backturnlight_fix': backturnlightFix,
+                'structuralintegrity_fix': structuralintegrityFix,
+                'fastener_fix': fastenerFix,
+                'cover_fix': coverFix,
+                'date': dateTime,
+                'name': name,
+                'startLocation': location
+            }
+            // Convert the data object to a JSON string
+            let jsonData = JSON.stringify(data);
+
+            // Create a file reference for the current date
+            let dataRef = ref(storageRef, `${plate}_${dateStr}_${count}.json`);
+
+            // Check if a file with this name already exists
+            getMetadata(dataRef)
+                .then((metadata) => {
+                    // If the file exists, overwrite it with the new data
+                    uploadString(dataRef, jsonData)
+                        .then(() => {
+                            alert('อัปโหลดข้อมูลสำเร็จ');
+                        })
+                        .catch((error) => {
+                            alert('เกิดปัญหาในการอัปโหลด:', error);
+                        });
+                })
+                .catch((error) => {
+                    // If the file does not exist, create a new file with the data
+                    uploadString(dataRef, jsonData)
+                        .then(() => {
+                            alert('อัปโหลดข้อมูลสำเร็จ');
+                        })
+                        .catch((error) => {
+                            alert('เกิดปัญหาในการอัปโหลด:', error);
+                        });
+                });
         }
-        // Convert the data object to a JSON string
-        let jsonData = JSON.stringify(data);
 
-        // Create a file reference for the current date
-        let dataRef = ref(storageRef, `${plate}_${dateStr}.json`);
-
-        // Check if a file with this name already exists
-        getMetadata(dataRef)
-            .then((metadata) => {
-                // If the file exists, overwrite it with the new data
-                uploadString(dataRef, jsonData)
-                    .then(() => {
-                        alert('อัปโหลดข้อมูลสำเร็จ');
-                    })
-                    .catch((error) => {
-                        alert('เกิดปัญหาในการอัปโหลด:', error);
+        const Ref = rtref(rtdb, `${plate}/user`);
+        let listener = onValue(Ref, (snapshot) => {
+            listener()
+            const value = snapshot.val();
+            if (value === null) {
+                const userID = auth.currentUser.uid
+                const userRef = rtref(rtdb, userID);
+                const userObj = {
+                    'plate': plate,
+                    'working': true,
+                    'rest1': false,
+                    'rest2': false,
+                    'destination': false,
+                    'passRest1': false,
+                    'passRest2': false,
+                    'passDestination': false,
+                }
+                rtupdate(userRef, userObj).then(() => {
+                    console.log('success');
+                }).catch((error) => {
+                    console.log(error);
+                });
+                const countRef = rtref(rtdb, `usage/${plate}`)
+                let unsubscribe = onValue(countRef, (countSnapshot) => {
+                    unsubscribe()
+                    let count = countSnapshot.val()
+                    if (count === null) {
+                        count = 0
+                    }
+                    const plateRef = rtref(rtdb, plate);
+                    const plateObj = {
+                        'active': true,
+                        'user': userID,
+                        'refDate': dateStr,
+                        'usage': count + 1
+                    }
+                    rtupdate(plateRef, plateObj).then(() => {
+                        console.log('success');
+                    }).catch((error) => {
+                        console.log(error);
                     });
-            })
-            .catch((error) => {
-                // If the file does not exist, create a new file with the data
-                uploadString(dataRef, jsonData)
-                    .then(() => {
-                        alert('อัปโหลดข้อมูลสำเร็จ');
-                    })
-                    .catch((error) => {
-                        alert('เกิดปัญหาในการอัปโหลด:', error);
-                    });
-            });
+                    inner(count + 1)
+                })
+            }
+            if (value !== null) {
+                console.log('time')
+                alert('this car is currently being driven by someone else')
+            }
+        });
     }
 
     const handleItemSelect = (item) => {
@@ -311,84 +382,93 @@ const Screen = ({navigation}) => {
 
     return (
         <View style={styles.container}>
-            <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw} fix={lawFix} setFix={setLawFix}
-                             note={lawNote} setNote={setLawNote}/>
-            <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax} note={taxNote}
-                             setNote={setTaxNote}
-                             fix={taxFix} setFix={setTaxFix}/>
-            <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}
-                             note={insuranceNote} setNote={setInsuranceNote} fix={insuranceFix}
-                             setFix={setInsuranceFix}/>
-            <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}
-                             note={passportNote} setNote={setPassportNote} fix={passportFix}
-                             setFix={setPassportFix}/>
-            <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}
-                             note={headlightNote} setNote={setHeadlightNote} fix={headlightFix}
-                             setFix={setHeadlightFix}/>
-            <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight} setValue={setTurnlight}
-                             fix={turnlightFix} setFix={setTurnlightFix} note={turnlightNote}
-                             setNote={setTurnlightNote}/>
-            <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}
-                             fix={toplightFix} setFix={setToplightFix} note={toplightNote}
-                             setNote={setToplightNote}/>
-            <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}
-                             fix={lubeoilFix} setFix={setLubeoilFix} note={lubeoilNote} setNote={setLubeoilNote}/>
-            <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant}
-                             setValue={setTankcoolant}
-                             fix={tankcoolantFix} setFix={setTankcoolantFix} note={tankcoolantNote}
-                             setNote={setTankcoolantNote}/>
-            <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation} setValue={setPercipitation}
-                             fix={percipitationFix} setFix={setPercipitationFix} note={percipitationNote}
-                             setNote={setPercipitationNote}/>
-            <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}
-                             fix={opsnameFix} setFix={setOpsnameFix} note={opsnameNote} setNote={setOpsnameNote}/>
-            <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}
-                             fix={doormirrorFix} setFix={setDoormirrorFix} note={doormirrorNote}
-                             setNote={setDoormirrorNote}/>
-            <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire} fix={tireFix}
-                             setFix={setTireFix} note={tireNote} setNote={setTireNote}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}
-                             fix={tirehubFix} setFix={setTirehubFix} note={tirehubNote} setNote={setTirehubNote}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}
-                             fix={tirehub2Fix} setFix={setTirehub2Fix} note={tirehub2Note}
-                             setNote={setTirehub2Note}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}
-                             fix={tirehub3Fix} setFix={setTirehub3Fix} note={tirehub3Note}
-                             setNote={setTirehub3Note}/>
-            <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}
-                             fix={tirehub4Fix} setFix={setTirehub4Fix} note={tirehub4Note}
-                             setNote={setTirehub4Note}/>
-            <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare} fix={spareFix}
-                             setFix={setSpareFix} note={spareNote} setNote={setSpareNote}/>
-            <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}
-                             fix={pressureFix}
-                             setFix={setPressureFix} note={pressureNote} setNote={setPressureNote}/>
-            <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher}
-                             setValue={setExtinguisher} fix={extinguisherFix} setFix={setExtinguisherFix}
-                             note={extinguisherNote} setNote={setExtinguisherNote}/>
-            <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}
-                             fix={tiresupportFix} setFix={setTiresupportFix} note={tiresupportNote}
-                             setNote={setTiresupportNote}/>
-            <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone} fix={coneFix}
-                             setFix={setConeFix} note={coneNote} setNote={setConeNote}/>
-            <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}
-                             fix={breaklightFix} setFix={setBreaklightFix} note={breaklightNote}
-                             setNote={setBreaklightNote}/>
-            <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}
-                             fix={reverselightFix} setFix={setReverselightFix} note={reverselightNote}
-                             setNote={setReverselightNote}/>
-            <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
-                             setValue={setBackturnlight} fix={backturnlightFix} setFix={setBackturnlightFix}
-                             note={backturnlightNote} setNote={setBackturnlightNote}/>
-            <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity}
-                             setValue={setStructuralintegrity}
-                             fix={structuralintegrityFix} setFix={setStructuralintegrityFix}
-                             note={structuralintegrityNote} setNote={setStructuralintegrityNote}/>
-            <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} fix={fastenerFix}
-                             setFix={setFastenerFix} note={fastenerNote} setNote={setFastenerNote}/>
-            <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
-                             setFix={setCoverFix}
-                             note={coverNote} setNote={setCoverNote}/>
+            <View>
+                <CheckBoxWrapper label="พรบ: ไม่หมดอายุ" value={law} setValue={setLaw} fix={lawFix}
+                                 setFix={setLawFix}
+                                 note={lawNote} setNote={setLawNote}/>
+                <CheckBoxWrapper label="ภาษี: ไม่หมดอายุ" value={tax} setValue={setTax} note={taxNote}
+                                 setNote={setTaxNote}
+                                 fix={taxFix} setFix={setTaxFix}/>
+                <CheckBoxWrapper label="ประกันภัย: ไม่หมดอายุ" value={insurance} setValue={setInsurance}
+                                 note={insuranceNote} setNote={setInsuranceNote} fix={insuranceFix}
+                                 setFix={setInsuranceFix}/>
+                <CheckBoxWrapper label="พาสสปอร์ตข้ามแดน: ไม่หมดอายุ" value={passport} setValue={setPassport}
+                                 note={passportNote} setNote={setPassportNote} fix={passportFix}
+                                 setFix={setPassportFix}/>
+                <CheckBoxWrapper label="ไฟหน้ารถ: ติดครบและส่องสว่าง" value={headlight} setValue={setHeadlight}
+                                 note={headlightNote} setNote={setHeadlightNote} fix={headlightFix}
+                                 setFix={setHeadlightFix}/>
+                <CheckBoxWrapper label="ไฟหรี่ไฟเลี้ยว: ติดครบและส่องสว่าง" value={turnlight}
+                                 setValue={setTurnlight}
+                                 fix={turnlightFix} setFix={setTurnlightFix} note={turnlightNote}
+                                 setNote={setTurnlightNote}/>
+                <CheckBoxWrapper label="ไฟหลังคา: ติดครบและส่องสว่าง" value={toplight} setValue={setToplight}
+                                 fix={toplightFix} setFix={setToplightFix} note={toplightNote}
+                                 setNote={setToplightNote}/>
+                <CheckBoxWrapper label="ระดับน้ำมันเครื่อง: ระดับสูงสุด MAX" value={lubeoil} setValue={setLubeoil}
+                                 fix={lubeoilFix} setFix={setLubeoilFix} note={lubeoilNote}
+                                 setNote={setLubeoilNote}/>
+                <CheckBoxWrapper label="น้ำหล่อเย็นหม้อน้ำ: ระดับสูงสุด MAX" value={tankcoolant}
+                                 setValue={setTankcoolant}
+                                 fix={tankcoolantFix} setFix={setTankcoolantFix} note={tankcoolantNote}
+                                 setNote={setTankcoolantNote}/>
+                <CheckBoxWrapper label="ระบบปัดน้ำฝน: ระดับสูงสุด MAX" value={percipitation}
+                                 setValue={setPercipitation}
+                                 fix={percipitationFix} setFix={setPercipitationFix} note={percipitationNote}
+                                 setNote={setPercipitationNote}/>
+                <CheckBoxWrapper label="ชื่อประกอบการ: ติดครบไม่ชำรุด" value={opsname} setValue={setOpsname}
+                                 fix={opsnameFix} setFix={setOpsnameFix} note={opsnameNote}
+                                 setNote={setOpsnameNote}/>
+                <CheckBoxWrapper label="กระจกมองข่าง: ครบไม่แตกร้าว" value={doormirror} setValue={setDoormirror}
+                                 fix={doormirrorFix} setFix={setDoormirrorFix} note={doormirrorNote}
+                                 setNote={setDoormirrorNote}/>
+                <CheckBoxWrapper label="สภาพยางหน้า: ความลึก > 5 มม" value={tire} setValue={setTire} fix={tireFix}
+                                 setFix={setTireFix} note={tireNote} setNote={setTireNote}/>
+                <CheckBoxWrapper label="สภาพยางเพลาที่ 1: ความลึก > 3 มม." value={tirehub} setValue={setTirehub}
+                                 fix={tirehubFix} setFix={setTirehubFix} note={tirehubNote}
+                                 setNote={setTirehubNote}/>
+                <CheckBoxWrapper label="สภาพยางเพลาที่ 2: ความลึก > 3 มม." value={tirehub2} setValue={setTirehub2}
+                                 fix={tirehub2Fix} setFix={setTirehub2Fix} note={tirehub2Note}
+                                 setNote={setTirehub2Note}/>
+                <CheckBoxWrapper label="สภาพยางเพลาที่ 3: ความลึก > 3 มม." value={tirehub3} setValue={setTirehub3}
+                                 fix={tirehub3Fix} setFix={setTirehub3Fix} note={tirehub3Note}
+                                 setNote={setTirehub3Note}/>
+                <CheckBoxWrapper label="สภาพยางเพลาที่ 4: ความลึก > 3 มม." value={tirehub4} setValue={setTirehub4}
+                                 fix={tirehub4Fix} setFix={setTirehub4Fix} note={tirehub4Note}
+                                 setNote={setTirehub4Note}/>
+                <CheckBoxWrapper label="สภาพยางอะหลัย: มีพร้อมใช้งาน" value={spare} setValue={setSpare}
+                                 fix={spareFix}
+                                 setFix={setSpareFix} note={spareNote} setNote={setSpareNote}/>
+                <CheckBoxWrapper label="แรงดันลมยาง: 130 ปอนด์" value={pressure} setValue={setPressure}
+                                 fix={pressureFix}
+                                 setFix={setPressureFix} note={pressureNote} setNote={setPressureNote}/>
+                <CheckBoxWrapper label="ถังดับเพลิง: จํานวน 2 ถังถังละ 6 กก." value={extinguisher}
+                                 setValue={setExtinguisher} fix={extinguisherFix} setFix={setExtinguisherFix}
+                                 note={extinguisherNote} setNote={setExtinguisherNote}/>
+                <CheckBoxWrapper label="หมอนหนุนล้อ: จํานวน 2 อัน" value={tiresupport} setValue={setTiresupport}
+                                 fix={tiresupportFix} setFix={setTiresupportFix} note={tiresupportNote}
+                                 setNote={setTiresupportNote}/>
+                <CheckBoxWrapper label="กรวยจราจร: จํานวน 2 อัน" value={cone} setValue={setCone} fix={coneFix}
+                                 setFix={setConeFix} note={coneNote} setNote={setConeNote}/>
+                <CheckBoxWrapper label="ไฟเบรก: ติดครบและส่องสว่าง" value={breaklight} setValue={setBreaklight}
+                                 fix={breaklightFix} setFix={setBreaklightFix} note={breaklightNote}
+                                 setNote={setBreaklightNote}/>
+                <CheckBoxWrapper label="ไฟถอย: ติดครบและส่องสว่าง" value={reverselight} setValue={setReverselight}
+                                 fix={reverselightFix} setFix={setReverselightFix} note={reverselightNote}
+                                 setNote={setReverselightNote}/>
+                <CheckBoxWrapper label="ไฟเลี้ยวไฟหรี่ท้าย: ติดครบและส่องสว่าง" value={backturnlight}
+                                 setValue={setBackturnlight} fix={backturnlightFix} setFix={setBackturnlightFix}
+                                 note={backturnlightNote} setNote={setBackturnlightNote}/>
+                <CheckBoxWrapper label="อุปกรณ์ผูกรัดติดตรึง" value={structuralintegrity}
+                                 setValue={setStructuralintegrity}
+                                 fix={structuralintegrityFix} setFix={setStructuralintegrityFix}
+                                 note={structuralintegrityNote} setNote={setStructuralintegrityNote}/>
+                <CheckBoxWrapper label="ความมั่งคงแข็งแรง" value={fastener} setValue={setFastener} fix={fastenerFix}
+                                 setFix={setFastenerFix} note={fastenerNote} setNote={setFastenerNote}/>
+                <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
+                                 setFix={setCoverFix}
+                                 note={coverNote} setNote={setCoverNote}/>
+            </View>
             <TextInput
                 style={styles.nameInput}
                 value={name}
@@ -400,7 +480,10 @@ const Screen = ({navigation}) => {
                     style={styles.input}
                     value={query}
                     placeholder="search for license plate"
-                    onChangeText={(text) => {setQuery(text); setSelected(false)}}
+                    onChangeText={(text) => {
+                        setQuery(text);
+                        setSelected(false)
+                    }}
                 />
                 {filteredOptions.length > 0 && !selected && (
                     <FlatList

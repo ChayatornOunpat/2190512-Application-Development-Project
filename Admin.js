@@ -1,18 +1,13 @@
 import React, {useEffect, useState} from "react";
-import {
-    Text,
-    View,
-    TouchableOpacity,
-    TextInput,
-    FlatList,
-} from "react-native";
+import {FlatList, Text, TextInput, TouchableOpacity, View,} from "react-native";
 import {styles} from "./styles";
 import {createElement} from 'react-native-web';
-import {getDownloadURL, getMetadata, ref, uploadString} from "firebase/storage";
-import {auth, db, storage, storageRef} from "./firebase-config";
+import {getDownloadURL, ref} from "firebase/storage";
+import {db, rtdb, storage} from "./firebase-config";
 import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from "exceljs";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
+import {onValue, ref as rtref} from "firebase/database";
 
 const month = {
     "Jan": "01",
@@ -172,17 +167,60 @@ export default function Admin({navigation}) {
         }
     };
 
-    async function downloadData(date, plateNum) {
-        let fileRef = ref(storage, `${plateNum}_${date}.json`);
-        const fileSnapshot = await getDownloadURL(fileRef);
-        const fileURL = fileSnapshot.toString();
-        const response = await fetch(fileURL);
-        const blob = await response.blob();
-        const arrayBuffer = await new Response(blob).arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const textDecoder = new TextDecoder();
-        const jsonString = textDecoder.decode(uint8Array);
-        return JSON.parse(jsonString);
+    async function downloadFile(fileRef) {
+        try {
+            const fileSnapshot = await getDownloadURL(fileRef);
+            const fileURL = fileSnapshot.toString();
+            const response = await fetch(fileURL);
+            const blob = await response.blob();
+            const arrayBuffer = await new Response(blob).arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            const textDecoder = new TextDecoder();
+            const jsonString = textDecoder.decode(uint8Array);
+            return JSON.parse(jsonString);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    async function downloadData(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadEnd(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_end.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadDestination(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_destination.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadRestOne(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_rest1.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadRestTwo(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_rest2.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadDestinationExit(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passDestination.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadRestOneExit(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passRest1.json`);
+        return await downloadFile(fileRef)
+    }
+
+    async function downloadRestTwoExit(date, plateNum, count) {
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passRest2.json`);
+        return await downloadFile(fileRef)
     }
 
     const handleDownloadPress = async () => {
@@ -198,7 +236,47 @@ export default function Admin({navigation}) {
             return
         }
         const dateStr = formatDate(date);
+        async function inner(count) {
+            let data = await downloadData(dateStr, plate, count)
+            let end = await downloadEnd(dateStr, plate, count)
+            let destination = await downloadDestination(dateStr, plate, count)
+            let destinationExit = await downloadDestinationExit(dateStr, plate, count)
+            let restOne = await downloadRestOne(dateStr, plate, count)
+            let restOneExit = await downloadRestOneExit(dateStr, plate, count)
+            let restTwo = await downloadRestTwo(dateStr, plate, count)
+            let restTwoExit = await downloadRestTwoExit(dateStr, plate, count)
+            console.log(data, end, destination, destinationExit, restOne, restOneExit, restTwo, restTwoExit, count);
+            //after this not work
+            const workbook = new ExcelJS.Workbook();
+                await workbook.xlsx.load(buffer);
+                const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
+                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
+                for (let key of Object.keys(data)) {
+                    if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
+                        const value = data[key];
+                        sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                    }
+                }
+                workbook.xlsx.writeBuffer({base64: true})
+                    .then(function (xls64) {
+                        var a = document.createElement("a");
+                        var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                        var url = URL.createObjectURL(data);
+                        a.href = url;
+                        a.download = `${plateNum}_${dateStr}.xlsx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(function () {
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        }, 0);
+                    })
+                    .catch(function (error) {
+                        console.log(error.message);
+                    });
+        }
         if (plate === 'all') {
+            //todo: apply the multiple drive per day to this as well
             for (let plateNum of plateNums) {
                 let data = await downloadData(dateStr, plateNum)
                 const workbook = new ExcelJS.Workbook();
@@ -230,34 +308,14 @@ export default function Admin({navigation}) {
                     });
             }
         } else {
-            let data = await downloadData(dateStr, plate)
-            const workbook = new ExcelJS.Workbook();
-            await workbook.xlsx.load(buffer);
-            const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-            sheet.getCell("C3").value = `รถทะเบียน ${plate} ตรวจสอบวันที่ ${data["date"]}`
-            for (let key of Object.keys(data)) {
-                if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
-                    const value = data[key];
-                    sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+            const countRef = rtref(rtdb, `usage/${plate}`)
+            let unsubscribe = onValue(countRef, (countSnapshot) => {
+                unsubscribe()
+                let count = countSnapshot.val()
+                for (let i = 1; i <= count; i++) {
+                    inner(i)
                 }
-            }
-            workbook.xlsx.writeBuffer({base64: true})
-                .then(function (xls64) {
-                    var a = document.createElement("a");
-                    var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-                    var url = URL.createObjectURL(data);
-                    a.href = url;
-                    a.download = `${plate}_${dateStr}.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(function () {
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);
-                    }, 0);
-                })
-                .catch(function (error) {
-                    console.log(error.message);
-                });
+            });
         }
     }
 

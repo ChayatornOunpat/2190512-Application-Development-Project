@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from "firebase/auth";
 import { getStorage, ref, getMetadata, uploadString, getDownloadURL } from "firebase/storage";
 import { getFirestore } from 'firebase/firestore';
+import { getDatabase } from "firebase/database";
 import { firebaseKey } from './api-key.js';
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -13,6 +14,8 @@ const storage = getStorage(app);
 const storageRef = ref(storage);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const rtdb = getDatabase(app, 'https://forms-test-bf6d9-default-rtdb.asia-southeast1.firebasedatabase.app/');
 
 
-export { storage, storageRef, auth, db };
+
+export { storage, storageRef, auth, db, rtdb };

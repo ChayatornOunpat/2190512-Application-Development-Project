@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
         marginLeft: '5%',
         marginRight: '5%',
         height: 55,
+        marginTop: "25px",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#DDDDDD",
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
         height: 55,
         marginLeft: '5%',
         marginRight: '5%',
-        marginTop: "25px",
+        marginTop: "15px",
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#DDDDDD",
@@ -172,6 +173,15 @@ const styles = StyleSheet.create({
         marginTop: 80,
         backgroundColor: '#d2d2d2',
     },
+    driveBtn: {
+        width: '80%',
+        borderRadius: 25,
+        height: 60,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 25,
+        backgroundColor: '#d2d2d2',
+    },
     dlContainer: {
         flex: 1,
         backgroundColor: "#222222",
@@ -201,6 +211,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: 20,
         backgroundColor: '#d2d2d2',
+    },
+    plateTxt: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#d2d2d2',
+        fontSize: 25,
+        fontFamily: 'Noto',
     }
 });
 
