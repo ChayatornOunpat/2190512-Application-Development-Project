@@ -14,7 +14,7 @@ const storage = getStorage(app);
 const storageRef = ref(storage);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const rtdb = getDatabase(app, 'https://forms-test-bf6d9-default-rtdb.asia-southeast1.firebasedatabase.app/');
+const rtdb = getDatabase(app, 'https://forms-app-793a9-default-rtdb.asia-southeast1.firebasedatabase.app/');
 
 
 

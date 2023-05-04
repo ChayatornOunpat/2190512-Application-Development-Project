@@ -177,7 +177,7 @@ const Screen = ({navigation}) => {
                 return formatted_address
             }
         } catch (error) {
-            alert(error);
+            alert(error.message);
         }
     }
 

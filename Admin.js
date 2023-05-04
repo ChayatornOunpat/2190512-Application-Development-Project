@@ -7,7 +7,18 @@ import {db, rtdb, storage} from "./firebase-config";
 import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from "exceljs";
 import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
-import {onValue, ref as rtref} from "firebase/database";
+import {onValue, ref as rtref, get} from "firebase/database";
+
+const borderStyle = {
+    top: { style: "thin", color: { argb: 'FF000000' } },
+    left: { style: "thin", color: { argb: 'FF000000' } },
+    bottom: { style: "thin", color: { argb: 'FF000000' } },
+    right: { style: "thin", color: { argb: 'FF000000' } }
+}
+const cellTextAlignment = {
+    vertical: 'middle',
+    horizontal: 'center'
+};
 
 const month = {
     "Jan": "01",
@@ -23,35 +34,36 @@ const month = {
     "Nov": "11",
     "Dec": "12"
 }
-const cellOf = {
-    "law": "D5", "law_note": "E5", "law_fix": "F5",
-    "tax": "D6", "tax_note": "E6", "tax_fix": "F6",
-    "insurance": "D7", "insurance_note": "E7", "insurance_fix": "F7",
-    "passport": "D8", "passport_note": "E8", "passport_fix": "F8",
-    "headlight": "D9", "headlight_note": "E9", "headlight_fix": "F9",
-    "turnlight": "D10", "turnlight_note": "E10", "turnlight_fix": "F10",
-    "toplight": "D11", "toplight_note": "E11", "toplight_fix": "F11",
-    "lubeoil": "D12", "lubeoil_note": "E12", "lubeoil_fix": "F12",
-    "tankcoolant": "D13", "tankcoolant_note": "E13", "tankcoolant_fix": "F13",
-    "percipitation": "D14", "percipitation_note": "E14", "percipitation_fix": "F14",
-    "opsname": "D15", "opsname_note": "E15", "opsname_fix": "F15",
-    "doormirror": "D16", "doormirror_note": "E16", "doormirror_fix": "F16",
-    "tire": "D17", "tire_note": "E17", "tire_fix": "F17",
-    "tirehub": "D18", "tirehub_note": "E18", "tirehub_fix": "F18",
-    "tirehub2": "D19", "tirehub2_note": "E19", "tirehub2_fix": "F19",
-    "tirehub3": "D20", "tirehub3_note": "E20", "tirehub3_fix": "F20",
-    "tirehub4": "D21", "tirehub4_note": "E21", "tirehub4_fix": "F21",
-    "spare": "D22", "spare_note": "E22", "spare_fix": "F22",
-    "pressure": "D23", "pressure_note": "E23", "pressure_fix": "F23",
-    "extinguisher": "D24", "extinguisher_note": "E24", "extinguisher_fix": "F24",
-    "tiresupport": "D25", "tiresupport_note": "E25", "tiresupport_fix": "F25",
-    "cone": "D26", "cone_note": "E26", "cone_fix": "F26",
-    "breaklight": "D27", "breaklight_note": "E27", "breaklight_fix": "F27",
-    "reverselight": "D28", "reverselight_note": "E28", "reverselight_fix": "F28",
-    "backturnlight": "D29", "backturnlight_note": "E29", "backturnlight_fix": "F29",
-    "structuralintegrity": "D34", "structuralintegrity_note": "E34", "structuralintegrity_fix": "F34",
-    "fastener": "D35", "fastener_note": "E35", "fastener_fix": "F35",
-    "cover": "D36", "cover_note": "E36", "cover_fix": "F36"
+
+const dataKeys = {
+    "plate": "A",
+    "date": "B",
+    "name": "C",
+    "law": "D", 
+    "tax": "E", 
+    "insurance": "F", 
+    "passport": "G", 
+    "headlight": "H", 
+    "turnlight": "I", 
+    "toplight": "J", 
+    "lubeoil": "K", 
+    "tankcoolant": "L", 
+    "percipitation": "M", 
+    "opsname": "N", 
+    "doormirror": "O", 
+    "tire": "P", 
+    "tirehub": "Q", 
+    "tirehub2": "R", 
+    "tirehub3": "S", 
+    "tirehub4": "T", 
+    "spare": "U", 
+    "pressure": "V", 
+    "extinguisher": "W", 
+    "tiresupport": "X", 
+    "cone": "Y", 
+    "breaklight": "Z", 
+    "reverselight": "AA", 
+    "backturnlight": "AB"
 }
 
 const MyWebDatePicker = ({date, setDate}) => {
@@ -183,43 +195,9 @@ export default function Admin({navigation}) {
         }
     }
 
-    async function downloadData(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadEnd(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_end.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadDestination(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_destination.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadRestOne(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_rest1.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadRestTwo(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_rest2.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadDestinationExit(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passDestination.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadRestOneExit(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passRest1.json`);
-        return await downloadFile(fileRef)
-    }
-
-    async function downloadRestTwoExit(date, plateNum, count) {
-        let fileRef = ref(storage, `${plateNum}_${date}_${count}_passRest2.json`);
+    async function downloadData(date, plateNum, count, fileName) {
+        const name = fileName === "" || fileName === null ? "" : `_${fileName}`
+        let fileRef = ref(storage, `${plateNum}_${date}_${count}${name}.json`);
         return await downloadFile(fileRef)
     }
 
@@ -236,77 +214,120 @@ export default function Admin({navigation}) {
             return
         }
         const dateStr = formatDate(date);
+
         async function inner(count) {
-            let data = await downloadData(dateStr, plate, count)
-            let end = await downloadEnd(dateStr, plate, count)
-            let destination = await downloadDestination(dateStr, plate, count)
-            let destinationExit = await downloadDestinationExit(dateStr, plate, count)
-            let restOne = await downloadRestOne(dateStr, plate, count)
-            let restOneExit = await downloadRestOneExit(dateStr, plate, count)
-            let restTwo = await downloadRestTwo(dateStr, plate, count)
-            let restTwoExit = await downloadRestTwoExit(dateStr, plate, count)
+            let data = await downloadData(dateStr, plate, count, "")
+            let end = await downloadData(dateStr, plate, count, "end")
+            let destination = await downloadData(dateStr, plate, count, "destination")
+            let destinationExit = await downloadData(dateStr, plate, count, "rest1")
+            let restOne = await downloadData(dateStr, plate, count, "rest2")
+            let restOneExit = await downloadData(dateStr, plate, count, "passDestination")
+            let restTwo = await downloadData(dateStr, plate, count, "passRest1")
+            let restTwoExit = await downloadData(dateStr, plate, count, "passRest2")
             console.log(data, end, destination, destinationExit, restOne, restOneExit, restTwo, restTwoExit, count);
-            //after this not work
             const workbook = new ExcelJS.Workbook();
-                await workbook.xlsx.load(buffer);
-                const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
-                for (let key of Object.keys(data)) {
-                    if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
-                        const value = data[key];
-                        sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+            await workbook.xlsx.load(buffer);
+            const sheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+            for (var key of Object.keys(data)) {
+                if (dataKeys.hasOwnProperty(key)) {
+                    const col = dataKeys[key]
+                    const cell = sheet.getCell(`${col}5`);
+                    cell.border = borderStyle;
+                    cell.alignment = cellTextAlignment;
+                    const value = data[key];
+                    cell.value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                }
+            }
+            for (let i = 0; i < sheet.columns.length; i += 1) {
+                let dataMax = 0;
+                const column = sheet1.columns[i];
+                for (let j = 1; j < column.values.length; j += 1) {
+                    const columnLength = column.values[j].length;
+                    if (columnLength > dataMax) {
+                        dataMax = columnLength;
                     }
                 }
-                workbook.xlsx.writeBuffer({base64: true})
-                    .then(function (xls64) {
-                        var a = document.createElement("a");
-                        var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-                        var url = URL.createObjectURL(data);
-                        a.href = url;
-                        a.download = `${plateNum}_${dateStr}.xlsx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        setTimeout(function () {
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                        }, 0);
-                    })
-                    .catch(function (error) {
-                        console.log(error.message);
-                    });
+                column.width = dataMax < 10 ? 10 : dataMax;
+            }
+            workbook.xlsx.writeBuffer({base64: true})
+                .then(function (xls64) {
+                    var a = document.createElement("a");
+                    var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                    var url = URL.createObjectURL(data);
+                    a.href = url;
+                    a.download = `${data["plate"]}_${dateStr}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(function () {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 0);
+                })
+                .catch(function (error) {
+                    console.log(error.message);
+                });
         }
         if (plate === 'all') {
-            //todo: apply the multiple drive per day to this as well
+            //Not todo anymore : apply the multiple drive per day to this as well
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(buffer);
+            const sheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+            var row = 5;
             for (let plateNum of plateNums) {
-                let data = await downloadData(dateStr, plateNum)
-                const workbook = new ExcelJS.Workbook();
-                await workbook.xlsx.load(buffer);
-                const sheet = workbook.getWorksheet("แบบตรวจสอบรถก่อนเดินทาง");
-                sheet.getCell("C3").value = `รถทะเบียน ${plateNum} ตรวจสอบวันที่ ${data["date"]}`
-                for (let key of Object.keys(data)) {
-                    if (data.hasOwnProperty(key) && key !== "plate" && key !== "date") {
-                        const value = data[key];
-                        sheet.getCell(cellOf[key]).value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                const snapshot = await get(rtref(rtdb, `usage/${plateNum}`));
+                const count = await snapshot.val();
+                for (let i = 1; i <= count; i++) {
+                    let data = await downloadData(dateStr, plateNum, i, "")
+                    /*let end = await downloadData(dateStr, plateNum, i, "end")
+                    let destination = await downloadData(dateStr, plateNum, i, "destination")
+                    let destinationExit = await downloadData(dateStr, plateNum, i, "rest1")
+                    let restOne = await downloadData(dateStr, plateNum, i, "rest2")
+                    let restOneExit = await downloadData(dateStr, plateNum, i, "passDestination")
+                    let restTwo = await downloadData(dateStr, plateNum, i, "passRest1")
+                    let restTwoExit = await downloadData(dateStr, plateNum, i, "passRest2")*/
+                    for (var key of Object.keys(data)) {
+                        if (dataKeys.hasOwnProperty(key)) {
+                            const col = dataKeys[key]
+                            const cell = sheet.getCell(`${col}${row}`);
+                            cell.border = borderStyle;
+                            cell.alignment = cellTextAlignment;
+                            const value = data[key];
+                            cell.value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
+                        }
+                    }
+                    console.log(`Finished writing ${plateNum}(${i})'s data.`);
+                    row++;
+                }
+            }
+            for (let i = 0; i < sheet.columns.length; i += 1) {
+                let dataMax = 0;
+                const column = sheet.columns[i];
+                for (let j = 1; j < column.values.length; j += 1) {
+                    if (!column.values[j]) continue;
+                    const columnLength = column.values[j].length;
+                    if (columnLength > dataMax) {
+                        dataMax = columnLength;
                     }
                 }
-                workbook.xlsx.writeBuffer({base64: true})
-                    .then(function (xls64) {
-                        var a = document.createElement("a");
-                        var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-                        var url = URL.createObjectURL(data);
-                        a.href = url;
-                        a.download = `${plateNum}_${dateStr}.xlsx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        setTimeout(function () {
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                        }, 0);
-                    })
-                    .catch(function (error) {
-                        console.log(error.message);
-                    });
+                column.width = dataMax < 10 ? 10 : dataMax;
             }
+            workbook.xlsx.writeBuffer({ base64: true })
+                .then(function (xls64) {
+                    var a = document.createElement("a");
+                    var data = new Blob([xls64], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                    var url = URL.createObjectURL(data);
+                    a.href = url;
+                    a.download = `All_${dateStr}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(function () {
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    }, 0);
+                })
+                .catch(function (error) {
+                    console.log(error.message);
+                });
         } else {
             const countRef = rtref(rtdb, `usage/${plate}`)
             let unsubscribe = onValue(countRef, (countSnapshot) => {
