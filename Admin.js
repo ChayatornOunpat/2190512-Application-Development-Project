@@ -35,7 +35,7 @@ const month = {
     "Dec": "12"
 }
 
-const dataKeys = {
+const carDataKeys = {
     "plate": "A",
     "date": "B",
     "name": "C",
@@ -217,38 +217,60 @@ export default function Admin({navigation}) {
 
         async function inner(count) {
             let data = await downloadData(dateStr, plate, count, "")
-            let end = await downloadData(dateStr, plate, count, "end")
-            let destination = await downloadData(dateStr, plate, count, "destination")
-            let destinationExit = await downloadData(dateStr, plate, count, "rest1")
-            let restOne = await downloadData(dateStr, plate, count, "rest2")
-            let restOneExit = await downloadData(dateStr, plate, count, "passDestination")
-            let restTwo = await downloadData(dateStr, plate, count, "passRest1")
-            let restTwoExit = await downloadData(dateStr, plate, count, "passRest2")
             console.log(data, end, destination, destinationExit, restOne, restOneExit, restTwo, restTwoExit, count);
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(buffer);
-            const sheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
             for (var key of Object.keys(data)) {
-                if (dataKeys.hasOwnProperty(key)) {
-                    const col = dataKeys[key]
-                    const cell = sheet.getCell(`${col}5`);
+                if (carDataKeys.hasOwnProperty(key)) {
+                    const col = carDataKeys[key]
+                    const cell = carDataSheet.getCell(`${col}5`);
                     cell.border = borderStyle;
                     cell.alignment = cellTextAlignment;
                     const value = data[key];
                     cell.value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
                 }
             }
-            for (let i = 0; i < sheet.columns.length; i += 1) {
-                let dataMax = 0;
-                const column = sheet1.columns[i];
-                for (let j = 1; j < column.values.length; j += 1) {
-                    const columnLength = column.values[j].length;
-                    if (columnLength > dataMax) {
-                        dataMax = columnLength;
-                    }
-                }
-                column.width = dataMax < 10 ? 10 : dataMax;
-            }
+
+            travelDataSheet.getCell(`A3`).value = data["date"];
+            travelDataSheet.getCell(`B3`).value = data["plate"];
+            travelDataSheet.getCell(`D3`).value = data["name"];
+            travelDataSheet.getCell(`G3`).value = data["startLocation"];
+
+            let restOne = await downloadData(dateStr, plate, count, "rest1");
+            let restOneExit = await downloadData(dateStr, plate, count, "passRest1");
+            let restOneTime = restOne["time"].split(' ');
+            travelDataSheet.getCell(`I3`).value = restOne["location"];
+            travelDataSheet.getCell(`J3`).value = restOneTime[0];
+            travelDataSheet.getCell(`K3`).value = restOneTime[1];
+            travelDataSheet.getCell(`L3`).value = restOneExit["time"].split(' ')[1];
+
+            let destination = await downloadData(dateStr, plate, count, "destination");
+            travelDataSheet.getCell(`H3`).value = destination["location"];
+            let destinationExit = await downloadData(dateStr, plate, count, "passDestination");
+            let destinationTime = destination["time"].split(' ');
+            travelDataSheet.getCell(`M3`).value = destination["location"];
+            travelDataSheet.getCell(`N3`).value = destinationTime[0];
+            travelDataSheet.getCell(`O3`).value = destinationTime[1];
+            travelDataSheet.getCell(`P3`).value = destinationExit["time"].split(' ')[1];
+
+            let restTwo = await downloadData(dateStr, plate, count, "rest2");
+            let restTwoExit = await downloadData(dateStr, plate, count, "passRest2");
+            let restTwoTime = restTwo["time"].split(' ');
+            travelDataSheet.getCell(`Q3`).value = restTwo["location"];
+            travelDataSheet.getCell(`R3`).value = restTwoTime[0];
+            travelDataSheet.getCell(`S3`).value = restTwoTime[1];
+            travelDataSheet.getCell(`T3`).value = restTwoExit["time"].split(' ')[1];
+
+            let end = await downloadData(dateStr, plate, count, "end");
+            travelDataSheet.getCell(`U3`).value = end["location"];
+            let endTime = end["time"].split(' ');
+            travelDataSheet.getCell(`V3`).value = endTime[0];
+            travelDataSheet.getCell(`W3`).value = endTime[1];
+
+            fitCellWithContent(carDataSheet);
+            fitCellWithContent(travelDataSheet);
             workbook.xlsx.writeBuffer({base64: true})
                 .then(function (xls64) {
                     var a = document.createElement("a");
@@ -271,46 +293,69 @@ export default function Admin({navigation}) {
             //Not todo anymore : apply the multiple drive per day to this as well
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(buffer);
-            const sheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-            var row = 5;
+            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
+            var carDataRow = 5;
+            var travelDataRow = 3;
             for (let plateNum of plateNums) {
                 const snapshot = await get(rtref(rtdb, `usage/${plateNum}`));
                 const count = await snapshot.val();
                 for (let i = 1; i <= count; i++) {
                     let data = await downloadData(dateStr, plateNum, i, "")
-                    /*let end = await downloadData(dateStr, plateNum, i, "end")
-                    let destination = await downloadData(dateStr, plateNum, i, "destination")
-                    let destinationExit = await downloadData(dateStr, plateNum, i, "rest1")
-                    let restOne = await downloadData(dateStr, plateNum, i, "rest2")
-                    let restOneExit = await downloadData(dateStr, plateNum, i, "passDestination")
-                    let restTwo = await downloadData(dateStr, plateNum, i, "passRest1")
-                    let restTwoExit = await downloadData(dateStr, plateNum, i, "passRest2")*/
                     for (var key of Object.keys(data)) {
-                        if (dataKeys.hasOwnProperty(key)) {
-                            const col = dataKeys[key]
-                            const cell = sheet.getCell(`${col}${row}`);
+                        if (carDataKeys.hasOwnProperty(key)) {
+                            const col = carDataKeys[key]
+                            const cell = carDataSheet.getCell(`${col}${carDataRow}`);
                             cell.border = borderStyle;
                             cell.alignment = cellTextAlignment;
                             const value = data[key];
                             cell.value = typeof value === "boolean" ? value.toString().toLowerCase() === "true" ? "✓" : "X" : !value ? "-" : value;
                         }
                     }
+
+                    travelDataSheet.getCell(`A${travelDataRow}`).value = data["date"];
+                    travelDataSheet.getCell(`B${travelDataRow}`).value = data["plate"];
+                    travelDataSheet.getCell(`D${travelDataRow}`).value = data["name"];
+                    travelDataSheet.getCell(`G${travelDataRow}`).value = data["startLocation"];
+
+                    let restOne = await downloadData(dateStr, plateNum, i, "rest1");
+                    let restOneExit = await downloadData(dateStr, plateNum, i, "passRest1");
+                    let restOneTime = restOne["time"].split(' ');
+                    travelDataSheet.getCell(`I${travelDataRow}`).value = restOne["location"];
+                    travelDataSheet.getCell(`J${travelDataRow}`).value = restOneTime[0];
+                    travelDataSheet.getCell(`K${travelDataRow}`).value = restOneTime[1];
+                    travelDataSheet.getCell(`L${travelDataRow}`).value = restOneExit["time"].split(' ')[1];
+
+                    let destination = await downloadData(dateStr, plateNum, i, "destination");
+                    travelDataSheet.getCell(`H${travelDataRow}`).value = destination["location"];
+                    let destinationExit = await downloadData(dateStr, plateNum, i, "passDestination");
+                    let destinationTime = destination["time"].split(' ');
+                    travelDataSheet.getCell(`M${travelDataRow}`).value = destination["location"];
+                    travelDataSheet.getCell(`N${travelDataRow}`).value = destinationTime[0];
+                    travelDataSheet.getCell(`O${travelDataRow}`).value = destinationTime[1];
+                    travelDataSheet.getCell(`P${travelDataRow}`).value = destinationExit["time"].split(' ')[1];
+
+                    let restTwo = await downloadData(dateStr, plateNum, i, "rest2");
+                    let restTwoExit = await downloadData(dateStr, plateNum, i, "passRest2");
+                    let restTwoTime = restTwo["time"].split(' ');
+                    travelDataSheet.getCell(`Q${travelDataRow}`).value = restTwo["location"];
+                    travelDataSheet.getCell(`R${travelDataRow}`).value = restTwoTime[0];
+                    travelDataSheet.getCell(`S${travelDataRow}`).value = restTwoTime[1];
+                    travelDataSheet.getCell(`T${travelDataRow}`).value = restTwoExit["time"].split(' ')[1];
+
+                    let end = await downloadData(dateStr, plateNum, i, "end");
+                    travelDataSheet.getCell(`U${travelDataRow}`).value = end["location"];
+                    let endTime = end["time"].split(' ');
+                    travelDataSheet.getCell(`V${travelDataRow}`).value = endTime[0];
+                    travelDataSheet.getCell(`W${travelDataRow}`).value = endTime[1];
+
                     console.log(`Finished writing ${plateNum}(${i})'s data.`);
-                    row++;
+                    carDataRow++;
+                    travelDataRow++;
                 }
             }
-            for (let i = 0; i < sheet.columns.length; i += 1) {
-                let dataMax = 0;
-                const column = sheet.columns[i];
-                for (let j = 1; j < column.values.length; j += 1) {
-                    if (!column.values[j]) continue;
-                    const columnLength = column.values[j].length;
-                    if (columnLength > dataMax) {
-                        dataMax = columnLength;
-                    }
-                }
-                column.width = dataMax < 10 ? 10 : dataMax;
-            }
+            fitCellWithContent(carDataSheet);
+            fitCellWithContent(travelDataSheet);
             workbook.xlsx.writeBuffer({ base64: true })
                 .then(function (xls64) {
                     var a = document.createElement("a");
@@ -337,6 +382,26 @@ export default function Admin({navigation}) {
                     inner(i)
                 }
             });
+        }
+    }
+
+    function fitCellWithContent(sheet) {
+        for (let i = 0; i < sheet.columns.length; i += 1) {
+            let dataMax = 0;
+            const column = sheet.columns[i];
+            column.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
+                if (!cell.value || cell.value === "") return;
+                cell.border = borderStyle;
+                cell.alignment = cellTextAlignment;
+            });
+            for (let j = 1; j < column.values.length; j += 1) {
+                if (!column.values[j]) continue;
+                const columnLength = column.values[j].length;
+                if (columnLength > dataMax) {
+                    dataMax = columnLength;
+                }
+            }
+            column.width = dataMax < 10 ? 10 : dataMax;
         }
     }
 
