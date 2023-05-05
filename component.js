@@ -104,6 +104,7 @@ const Screen = ({navigation}) => {
     const [filteredOptions, setFilteredOptions] = useState(plateNums);
     const [name, setName] = useState('')
     const [selected, setSelected] = useState(false)
+    const [date, setDate] = useState('2023-05-04')
 
     useEffect(() => {
         Geocoder.init(mapsKey);
@@ -191,7 +192,7 @@ const Screen = ({navigation}) => {
         const utcOffset = 7;
         const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
         const utcDate = new Date(currentDate.getTime() + offsetMilliseconds);
-        let dateStr = utcDate.toISOString().slice(0, 10);
+        let dateStr = date
         let timeStr = utcDate.toISOString().slice(11, 19);
         const dateTime = dateStr + ' ' + timeStr
 
@@ -344,7 +345,7 @@ const Screen = ({navigation}) => {
                 }).catch((error) => {
                     console.log(error);
                 });
-                const countRef = rtref(rtdb, `usage/${plate}`)
+                const countRef = rtref(rtdb, `usage/${plate}/${dateStr}`)
                 let unsubscribe = onValue(countRef, (countSnapshot) => {
                     unsubscribe()
                     let count = countSnapshot.val()
@@ -474,6 +475,11 @@ const Screen = ({navigation}) => {
                 value={name}
                 placeholder="ชื่อ"
                 onChangeText={(text) => setName(text)}
+            />
+            <TextInput
+                style={styles.nameInput}
+                value={date}
+                onChangeText={(text) => setDate(text)}
             />
             <View style={styles.search}>
                 <TextInput

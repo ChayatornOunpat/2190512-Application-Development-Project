@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {FlatList, Text, TextInput, TouchableOpacity, View,} from "react-native";
+import {Picker} from '@react-native-picker/picker';
 import {styles} from "./styles";
 import {createElement} from 'react-native-web';
 import {getDownloadURL, ref} from "firebase/storage";
@@ -10,10 +11,10 @@ import {doc, getDoc, setDoc, updateDoc} from "firebase/firestore";
 import {onValue, ref as rtref, get} from "firebase/database";
 
 const borderStyle = {
-    top: { style: "thin", color: { argb: 'FF000000' } },
-    left: { style: "thin", color: { argb: 'FF000000' } },
-    bottom: { style: "thin", color: { argb: 'FF000000' } },
-    right: { style: "thin", color: { argb: 'FF000000' } }
+    top: {style: "thin", color: {argb: 'FF000000'}},
+    left: {style: "thin", color: {argb: 'FF000000'}},
+    bottom: {style: "thin", color: {argb: 'FF000000'}},
+    right: {style: "thin", color: {argb: 'FF000000'}}
 }
 const cellTextAlignment = {
     vertical: 'middle',
@@ -39,30 +40,30 @@ const carDataKeys = {
     "plate": "A",
     "date": "B",
     "name": "C",
-    "law": "D", 
-    "tax": "E", 
-    "insurance": "F", 
-    "passport": "G", 
-    "headlight": "H", 
-    "turnlight": "I", 
-    "toplight": "J", 
-    "lubeoil": "K", 
-    "tankcoolant": "L", 
-    "percipitation": "M", 
-    "opsname": "N", 
-    "doormirror": "O", 
-    "tire": "P", 
-    "tirehub": "Q", 
-    "tirehub2": "R", 
-    "tirehub3": "S", 
-    "tirehub4": "T", 
-    "spare": "U", 
-    "pressure": "V", 
-    "extinguisher": "W", 
-    "tiresupport": "X", 
-    "cone": "Y", 
-    "breaklight": "Z", 
-    "reverselight": "AA", 
+    "law": "D",
+    "tax": "E",
+    "insurance": "F",
+    "passport": "G",
+    "headlight": "H",
+    "turnlight": "I",
+    "toplight": "J",
+    "lubeoil": "K",
+    "tankcoolant": "L",
+    "percipitation": "M",
+    "opsname": "N",
+    "doormirror": "O",
+    "tire": "P",
+    "tirehub": "Q",
+    "tirehub2": "R",
+    "tirehub3": "S",
+    "tirehub4": "T",
+    "spare": "U",
+    "pressure": "V",
+    "extinguisher": "W",
+    "tiresupport": "X",
+    "cone": "Y",
+    "breaklight": "Z",
+    "reverselight": "AA",
     "backturnlight": "AB"
 }
 
@@ -73,18 +74,22 @@ const MyWebDatePicker = ({date, setDate}) => {
         onChange: (event) => {
             setDate(new Date(event.target.value));
         },
-        style: {height: 30, padding: 5, border: "2px solid #677788", borderRadius: 5, width: 250}
+        style: {height: 30, padding: 5, border: "2px solid #677788", borderRadius: 5, width: 250, marginBottom: 10}
     })
 }
 
 export default function Admin({navigation}) {
     const currentDate = new Date();
-    const [date, setDate] = useState(new Date(currentDate.getTime()));
+    const utcOffset = 7;
+    const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
+    const [date, setDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds));
+    const [endDate, setEndDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds + 86400000));
     const [plate, setPlate] = useState('ทั้งหมด');
     const [plateNums, setPlateNums] = useState([]);
     const [plateSelect, setPlateSelect] = useState([]);
     const [query, setQuery] = useState('');
     const [filteredOptions, setFilteredOptions] = useState(plateSelect);
+    const [mode, setMode] = useState('byDate');
     const [selected, setSelected] = useState(false)
 
     function readDataFromFirestore(key, documentRef) {
@@ -201,6 +206,18 @@ export default function Admin({navigation}) {
         return await downloadFile(fileRef)
     }
 
+    function getDateStringArray(startDate, endDate) {
+        const dateArray = [];
+        const currentDate = new Date(startDate);
+
+        while (currentDate <= endDate) {
+            dateArray.push(currentDate.toISOString().slice(0, 10));
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        return dateArray;
+    }
+
     const handleDownloadPress = async () => {
         let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
         var buffer;
@@ -215,18 +232,6 @@ export default function Admin({navigation}) {
         }
         const dateStr = formatDate(date);
 
-        async function inner(count) {
-            const workbook = new ExcelJS.Workbook();
-            await workbook.xlsx.load(buffer);
-            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
-            let data = await downloadData(dateStr, plateNum, count, "")
-            await writeCarData(carDataSheet, data, 5);
-            await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, count);
-            fitCellWithContent(carDataSheet);
-            fitCellWithContent(travelDataSheet);
-            downloadAsXlsx(workbook, data["plate"], dateStr);
-        }
         if (plate === 'ทั้งหมด') {
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(buffer);
@@ -250,22 +255,57 @@ export default function Admin({navigation}) {
             fitCellWithContent(travelDataSheet);
             downloadAsXlsx(workbook, "All", dateStr)
         } else {
-            const countRef = rtref(rtdb, `usage/${plate}`)
-            let unsubscribe = onValue(countRef, (countSnapshot) => {
-                unsubscribe()
-                let count = countSnapshot.val()
-                for (let i = 1; i <= count; i++) {
-                    inner(i)
+            if (mode === "byPlate") {
+                const dateList = getDateStringArray(new Date(dateStr), new Date(formatDate(endDate)))
+                console.log(dateList)
+                for (let day of dateList) {
+                    console.log(day);
+                    try {
+                        const snapshot = await get(rtref(rtdb, `usage/${plate}/${day}`));
+                        const count = await snapshot.val();
+                        for (let i = 1; i <= count; i++) {
+                            console.log('s1')
+                            const workbook = new ExcelJS.Workbook();
+                            await workbook.xlsx.load(buffer);
+                            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+                            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
+                            let data = await downloadData(day, plate, i, "")
+                            console.log(data);
+                            await writeCarData(carDataSheet, data, 5);
+                            await writeTravelData(travelDataSheet, data, 3, day, plate, count);
+                            fitCellWithContent(carDataSheet);
+                            fitCellWithContent(travelDataSheet);
+                            downloadAsXlsx(workbook, data["plate"], dateStr);
+                        }
+                    } catch (e) {
+                    }
                 }
-            });
+            } else {
+                const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
+                const count = await snapshot.val();
+                for (let i = 1; i <= count; i++) {
+                    console.log('s1')
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.load(buffer);
+                    const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+                    const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
+                    let data = await downloadData(dateStr, plate, i, "")
+                    console.log(data);
+                    await writeCarData(carDataSheet, data, 5);
+                    await writeTravelData(travelDataSheet, data, 3, dateStr, plate, count);
+                    fitCellWithContent(carDataSheet);
+                    fitCellWithContent(travelDataSheet);
+                    downloadAsXlsx(workbook, data["plate"], dateStr);
+                }
+            }
         }
     }
 
     function downloadAsXlsx(workbook, plateNum, date) {
-        workbook.xlsx.writeBuffer({ base64: true })
+        workbook.xlsx.writeBuffer({base64: true})
             .then(function (xls64) {
                 var a = document.createElement("a");
-                var data = new Blob([xls64], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                var data = new Blob([xls64], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
                 var url = URL.createObjectURL(data);
                 a.href = url;
                 a.download = `${plateNum}_${date}.xlsx`;
@@ -298,17 +338,26 @@ export default function Admin({navigation}) {
         function getCell(col) {
             return sheet.getCell(`${col}${row}`)
         }
+
         let restOne = await downloadData(dateStr, plateNum, count, "rest1");
         let restOneExit = await downloadData(dateStr, plateNum, count, "passRest1");
-        let restOneTime = restOne["time"].split(' ');
+        let restOneTime
+        if (restOne) {
+            restOneTime = restOne["time"].split(' ');
+        }
         let destination = await downloadData(dateStr, plateNum, count, "destination");
         let destinationExit = await downloadData(dateStr, plateNum, count, "passDestination");
         let destinationTime = destination["time"].split(' ');
         let restTwo = await downloadData(dateStr, plateNum, count, "rest2");
         let restTwoExit = await downloadData(dateStr, plateNum, count, "passRest2");
-        let restTwoTime = restTwo["time"].split(' ');
+        let restTwoTime
+        if (restTwo) {
+            restTwoTime = restTwo["time"].split(' ');
+        }
         let end = await downloadData(dateStr, plateNum, count, "end");
         let endTime = end["time"].split(' ');
+        console.log(restOne, restOneExit, restTwoExit, restTwo, destinationExit, destination, end)
+        return null;
         let cellDatas = {
             "A": data["date"],
             "B": data["plate"],
@@ -340,7 +389,7 @@ export default function Admin({navigation}) {
         for (let i = 0; i < sheet.columns.length; i++) {
             let dataMax = 0;
             const column = sheet.columns[i];
-            column.eachCell({ includeEmpty: false }, (cell, rowNumber) => {
+            column.eachCell({includeEmpty: false}, (cell, rowNumber) => {
                 if (!cell.value || cell.value === "") return;
                 cell.border = borderStyle;
                 cell.alignment = cellTextAlignment;
@@ -353,6 +402,25 @@ export default function Admin({navigation}) {
                 }
             }
             column.width = dataMax < 10 ? 10 : dataMax;
+        }
+    }
+
+    function handleSetMode(mode) {
+        setMode(mode);
+        if (mode === 'byPlate') {
+            setPlateSelect(plateNums);
+            setFilteredOptions(
+                plateSelect.filter((option) =>
+                    option.toLowerCase().includes(query.toLowerCase())
+                )
+            );
+        } else {
+            setPlateSelect([...plateNums, 'ทั้งหมด']);
+            setFilteredOptions(
+                plateSelect.filter((option) =>
+                    option.toLowerCase().includes(query.toLowerCase())
+                )
+            );
         }
     }
 
@@ -372,7 +440,10 @@ export default function Admin({navigation}) {
                     style={styles.input}
                     value={query}
                     placeholder="ค้นหา"
-                    onChangeText={(text) => {setQuery(text); setSelected(false)}}
+                    onChangeText={(text) => {
+                        setQuery(text);
+                        setSelected(false)
+                    }}
                 />
                 {filteredOptions.length > 0 && !selected && (
                     <FlatList
@@ -394,6 +465,21 @@ export default function Admin({navigation}) {
                 date={date}
                 setDate={setDate}
             />
+            {mode === 'byPlate' && (
+                <MyWebDatePicker
+                    date={endDate}
+                    setDate={setEndDate}
+                />
+            )}
+            <Picker
+                style={styles.selector}
+                selectedValue={mode}
+                onValueChange={(itemValue, itemIndex) =>
+                    handleSetMode(itemValue)
+                }>
+                <Picker.Item label="by date" value="byDate"/>
+                <Picker.Item label="by plate" value="byPlate"/>
+            </Picker>
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
                 <Text>ดาวน์โหลด</Text>
             </TouchableOpacity>

@@ -237,9 +237,9 @@ const Driving = ({navigation}) => {
                                 alert('เกิดปัญหาในการอัปโหลด:', error);
                             });
                     });
-                const usageRef = rtref(rtdb, 'usage');
+                const usageRef = rtref(rtdb, `usage/${plate}`);
                 let updateVal = {}
-                updateVal[plate] = count
+                updateVal[date] = count
                 rtupdate(usageRef, updateVal)
                 const usersRef = rtref(rtdb);
                 const userID = auth.currentUser.uid
