@@ -472,14 +472,14 @@ const Screen = ({navigation}) => {
             <TextInput
                 style={styles.nameInput}
                 value={name}
-                placeholder="name"
+                placeholder="ชื่อ"
                 onChangeText={(text) => setName(text)}
             />
             <View style={styles.search}>
                 <TextInput
                     style={styles.input}
                     value={query}
-                    placeholder="search for license plate"
+                    placeholder="ค้นหาทะเบียน"
                     onChangeText={(text) => {
                         setQuery(text);
                         setSelected(false)

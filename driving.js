@@ -562,64 +562,63 @@ const Driving = ({navigation}) => {
 
     return (
         <View style={styles.dlContainer}>
-            <Text style={styles.plateTxt}>plate: {plate}</Text>
+            <Text style={styles.plateTxt}>ทะเบียน: {plate}</Text>
             {!rest1 && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handleRestOne}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>rest 1</Text>
+                        <Text style={styles.btnTxt}>จอดที่จุดบังคับจอดครั้งที่ 1</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {rest1 && !passRest1 && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handlePassRestOne}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>exit rest 1</Text>
+                        <Text style={styles.btnTxt}>ออกจากจุดบังคับจอดครั้งที่ 1</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {!destination && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handleDestination}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>destination</Text>
+                        <Text style={styles.btnTxt}>ถึงจุดหมายปลายทาง</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {destination && !passDestination && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handlePassDestination}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>exit destination</Text>
+                        <Text style={styles.btnTxt}>ออกจากจุดหมายปลายทาง</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {!rest2 && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handleRestTwo}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>rest 2</Text>
+                        <Text style={styles.btnTxt}>จอดที่จุดบังคับจอดครั้งที่ 2</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {rest2 && !passRest2 && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handlePassRestTwo}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>exit rest 2</Text>
+                        <Text style={styles.btnTxt}>ออกจากจุดบังคับจอดครั้งที่ 2</Text>
                     </View>
                 </TouchableOpacity>
             )}
             {destination && passDestination && (
                 <TouchableOpacity style={styles.driveBtn} onPress={handleEnd}>
                     <View style={styles.btnTxtView}>
-                        <Text style={styles.btnTxt}>end</Text>
+                        <Text style={styles.btnTxt}>เสร็จสิ้น</Text>
                     </View>
                 </TouchableOpacity>
             )}
             <TouchableOpacity style={styles.driveBtn} onPress={handleSignOutPress}>
                 <View style={styles.btnTxtView}>
-                    <Text style={styles.btnTxt}>sign out</Text>
+                    <Text style={styles.btnTxt}>ออกจากระบบ</Text>
                 </View>
             </TouchableOpacity>
         </View>
     );
 }
-
 
 export {Driving}
