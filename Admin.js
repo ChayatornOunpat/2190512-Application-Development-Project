@@ -229,35 +229,29 @@ export default function Admin({navigation}) {
             return
         }
         const dateStr = formatDate(date);
-
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
         if (plate === 'ทั้งหมด') {
-            const workbook = new ExcelJS.Workbook();
-            await workbook.xlsx.load(buffer);
             const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
             const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
             var carDataRow = 5;
             var travelDataRow = 3;
             for (let plateNum of plateNums) {
-                const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
+                const snapshot = await get(rtref(rtdb, `usage/${plateNum}/${dateStr}`));
                 const count = await snapshot.val();
-                for (let i = 1; i <= count; i++) {
-                    console.log('s1')
-                    const workbook = new ExcelJS.Workbook();
-                    await workbook.xlsx.load(buffer);
+                for (let i = 1; i <= count; i++, carDataRow++, travelDataRow++) {
                     const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
                     const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
-                    let data = await downloadData(dateStr, plate, i, "")
+                    let data = await downloadData(dateStr, plateNum, i, "")
                     console.log(data);
                     await writeCarData(carDataSheet, data, carDataRow);
                     await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plateNum, i);
                     console.log(`Finished writing ${plateNum}(${i})'s data.`);
-                    carDataRow++;
-                    travelDataRow++;
                 }
             }
             fitCellWithContent(carDataSheet);
             fitCellWithContent(travelDataSheet);
-            downloadAsXlsx(workbook, "All", dateStr)
+            downloadAsXlsx(workbook, "All", dateStr);
         } else {
             if (mode === "byPlate") {
                 const dateList = getDateStringArray(new Date(dateStr), new Date(formatDate(endDate)))
@@ -267,40 +261,34 @@ export default function Admin({navigation}) {
                     try {
                         const snapshot = await get(rtref(rtdb, `usage/${plate}/${day}`));
                         const count = await snapshot.val();
-                        for (let i = 1; i <= count; i++) {
-                            console.log('s1')
-                            const workbook = new ExcelJS.Workbook();
-                            await workbook.xlsx.load(buffer);
+                        for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
                             const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
                             const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
                             let data = await downloadData(day, plate, i, "")
                             console.log(data);
-                            await writeCarData(carDataSheet, data, 5);
-                            await writeTravelData(travelDataSheet, data, 3, day, plate, count);
+                            await writeCarData(carDataSheet, data, carDataRow);
+                            await writeTravelData(travelDataSheet, data, travelDataRow, day, plate, count);
                             fitCellWithContent(carDataSheet);
                             fitCellWithContent(travelDataSheet);
-                            downloadAsXlsx(workbook, data["plate"], dateStr);
                         }
+                        downloadAsXlsx(workbook, data["plate"], dateStr);
                     } catch (e) {
                     }
                 }
             } else {
                 const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
                 const count = await snapshot.val();
-                for (let i = 1; i <= count; i++) {
-                    console.log('s1')
-                    const workbook = new ExcelJS.Workbook();
-                    await workbook.xlsx.load(buffer);
+                for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
                     const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
                     const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
                     let data = await downloadData(dateStr, plate, i, "")
                     console.log(data);
-                    await writeCarData(carDataSheet, data, 5);
-                    await writeTravelData(travelDataSheet, data, 3, dateStr, plate, count);
+                    await writeCarData(carDataSheet, data, carDataRow);
+                    await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, count);
                     fitCellWithContent(carDataSheet);
                     fitCellWithContent(travelDataSheet);
-                    downloadAsXlsx(workbook, data["plate"], dateStr);
                 }
+                downloadAsXlsx(workbook, plate, dateStr);
             }
         }
     }
@@ -371,10 +359,10 @@ export default function Admin({navigation}) {
             "N": destinationTime[0],
             "O": destinationTime[1],
             "P": destinationExit["time"].split(' ')[1],
-            "Q": restTwo["location"],
-            "R": restTwoTime[0],
-            "S": restTwoTime[1],
-            "T": restTwoExit["time"].split(' ')[1],
+            "Q": restTwo ? restTwo["location"] : "-",
+            "R": restTwo ? restTwoTime[0] : "-",
+            "S": restTwo ? restTwoTime[1] : "-",
+            "T": restTwoExit ? restTwoExit["time"].split(' ')[1] : "-",
             "U": end["location"],
             "V": endTime[0],
             "W": endTime[1]
@@ -391,11 +379,6 @@ export default function Admin({navigation}) {
         for (let i = 0; i < sheet.columns.length; i++) {
             let dataMax = 0;
             const column = sheet.columns[i];
-            column.eachCell({ includeEmpty: false }, (cell, rowNumber) => {
-                if (!cell.value || cell.value === "") return;
-                cell.border = borderStyle;
-                cell.alignment = cellTextAlignment;
-            });
             for (let j = 1; j < column.values.length; j++) {
                 if (!column.values[j]) continue;
                 const columnLength = column.values[j].length;
