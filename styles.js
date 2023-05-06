@@ -218,6 +218,9 @@ const styles = StyleSheet.create({
         color: '#d2d2d2',
         fontSize: 25,
         fontFamily: 'Noto',
+    },
+    selector: {
+        marginTop: 20,
     }
 });
 
