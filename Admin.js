@@ -102,7 +102,7 @@ export default function Admin({navigation}) {
         const documentRef = doc(db, 'plates', 'plates');
         readDataFromFirestore('plates', documentRef).then((data) => {
             setPlateNums(data)
-            setPlateSelect([...data, 'ทั้งหมด']);
+            setPlateSelect(['ทั้งหมด', ...data]);
         })
     }, []);
 
@@ -295,9 +295,6 @@ export default function Admin({navigation}) {
     }
 
     async function writeTravelData(sheet, data, row, dateStr, plateNum, count) {
-        function getCell(col) {
-            return sheet.getCell(`${col}${row}`)
-        }
         let restOne = await downloadData(dateStr, plateNum, count, "rest1");
         let restOneExit = await downloadData(dateStr, plateNum, count, "passRest1");
         let restOneTime = restOne["time"].split(' ');
@@ -332,7 +329,10 @@ export default function Admin({navigation}) {
             "W": endTime[1]
         }
         for (let col of Object.keys(cellDatas)) {
-            getCell(col).value = cellDatas[col];
+            const cell = sheet.getCell(`${col}${row}`);
+            cell.value = cellDatas[col];
+            cell.border = borderStyle;
+            cell.alignment = cellTextAlignment;
         }
     }
 
@@ -340,11 +340,6 @@ export default function Admin({navigation}) {
         for (let i = 0; i < sheet.columns.length; i++) {
             let dataMax = 0;
             const column = sheet.columns[i];
-            column.eachCell({ includeEmpty: false }, (cell, rowNumber) => {
-                if (!cell.value || cell.value === "") return;
-                cell.border = borderStyle;
-                cell.alignment = cellTextAlignment;
-            });
             for (let j = 1; j < column.values.length; j++) {
                 if (!column.values[j]) continue;
                 const columnLength = column.values[j].length;
