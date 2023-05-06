@@ -80,10 +80,8 @@ const MyWebDatePicker = ({date, setDate}) => {
 
 export default function Admin({navigation}) {
     const currentDate = new Date();
-    const utcOffset = 7;
-    const offsetMilliseconds = utcOffset * 60 * 60 * 1000;
-    const [date, setDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds));
-    const [endDate, setEndDate] = useState(new Date(currentDate.getTime() + offsetMilliseconds + 86400000));
+    const [date, setDate] = useState(new Date(currentDate.getTime()));
+    const [endDate, setEndDate] = useState(new Date(currentDate.getTime()));
     const [plate, setPlate] = useState('ทั้งหมด');
     const [plateNums, setPlateNums] = useState([]);
     const [plateSelect, setPlateSelect] = useState([]);
@@ -335,9 +333,6 @@ export default function Admin({navigation}) {
     }
 
     async function writeTravelData(sheet, data, row, dateStr, plateNum, count) {
-        function getCell(col) {
-            return sheet.getCell(`${col}${row}`)
-        }
         let restOne = await downloadData(dateStr, plateNum, count, "rest1");
         let restOneExit = await downloadData(dateStr, plateNum, count, "passRest1");
         let restOneTime
@@ -356,7 +351,6 @@ export default function Admin({navigation}) {
         let end = await downloadData(dateStr, plateNum, count, "end");
         let endTime = end["time"].split(' ');
         console.log(restOne, restOneExit, restTwoExit, restTwo, destinationExit, destination, end)
-        return null;
         let cellDatas = {
             "A": data["date"],
             "B": data["plate"],
