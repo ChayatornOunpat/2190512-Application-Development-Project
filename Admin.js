@@ -238,10 +238,16 @@ export default function Admin({navigation}) {
             var carDataRow = 5;
             var travelDataRow = 3;
             for (let plateNum of plateNums) {
-                const snapshot = await get(rtref(rtdb, `usage/${plateNum}`));
+                const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
                 const count = await snapshot.val();
                 for (let i = 1; i <= count; i++) {
-                    let data = await downloadData(dateStr, plateNum, i, "")
+                    console.log('s1')
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.load(buffer);
+                    const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+                    const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
+                    let data = await downloadData(dateStr, plate, i, "")
+                    console.log(data);
                     await writeCarData(carDataSheet, data, carDataRow);
                     await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plateNum, i);
                     console.log(`Finished writing ${plateNum}(${i})'s data.`);
