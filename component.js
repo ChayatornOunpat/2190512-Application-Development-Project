@@ -98,6 +98,9 @@ const Screen = ({navigation}) => {
     const [structuralintegrityFix, setStructuralintegrityFix] = useState('');
     const [fastenerFix, setFastenerFix] = useState('');
     const [coverFix, setCoverFix] = useState('');
+    const [alcohol, setAlcohol] = useState(false);
+    const [drug, setDrug] = useState(false);
+    const [mile, setMile] = useState('')
     const [plate, setPlate] = useState('');
     const [query, setQuery] = useState('');
     const [plateNums, setPlateNums] = useState([]);
@@ -288,6 +291,9 @@ const Screen = ({navigation}) => {
                 'structuralintegrity_fix': structuralintegrityFix,
                 'fastener_fix': fastenerFix,
                 'cover_fix': coverFix,
+                'alcohol': alcohol,
+                'drug': drug,
+                'mile': mile,
                 'date': dateTime,
                 'name': name,
                 'startLocation': location
@@ -468,12 +474,20 @@ const Screen = ({navigation}) => {
                 <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
                                  setFix={setCoverFix}
                                  note={coverNote} setNote={setCoverNote}/>
+                <CheckBoxWrapper label="alcohol" value={alcohol} setValue={setAlcohol}/>
+                <CheckBoxWrapper label="drug" value={drug} setValue={setDrug}/>
             </View>
             <TextInput
                 style={styles.nameInput}
                 value={name}
                 placeholder="ชื่อ"
                 onChangeText={(text) => setName(text)}
+            />
+            <TextInput
+                style={styles.nameInput}
+                value={mile}
+                placeholder="mile"
+                onChangeText={(text) => setMile(text)}
             />
             <View style={styles.search}>
                 <TextInput
