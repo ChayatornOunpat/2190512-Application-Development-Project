@@ -20,7 +20,6 @@ const cellTextAlignment = {
     vertical: 'middle',
     horizontal: 'center'
 };
-
 const month = {
     "Jan": "01",
     "Feb": "02",
@@ -35,7 +34,6 @@ const month = {
     "Nov": "11",
     "Dec": "12"
 }
-
 const carDataKeys = {
     "plate": "A",
     "date": "B",
@@ -66,7 +64,6 @@ const carDataKeys = {
     "reverselight": "AA",
     "backturnlight": "AB"
 }
-
 const MyWebDatePicker = ({date, setDate}) => {
     return createElement('input', {
         type: 'date',
@@ -133,24 +130,15 @@ export default function Admin({navigation}) {
                 var plateList;
                 await workbook.xlsx.load(buffer)
                     .then(() => {
-                        // Get the worksheet you want to read data from
                         const worksheet = workbook.getWorksheet('Sheet1');
-
-                        // Get the column by its header name (e.g. 'A', 'B', 'C', etc.) or index (1, 2, 3, etc.)
                         const column = worksheet.getColumn('A');
-
-                        // Get an array of values in the column
                         const values = column.values;
-
-                        // Remove the first element (which is the column header)
                         values.shift();
-
-                        plateList = values // Output the values in the column
+                        plateList = values
                     });
                 const adminDocRef = doc(db, 'plates', 'plates')
                 getDoc(adminDocRef).then((docSnapshot) => {
                     if (docSnapshot.exists()) {
-                        // Update the document if it exists
                         updateDoc(adminDocRef, {
                             'plates': plateList
                         })
@@ -231,65 +219,44 @@ export default function Admin({navigation}) {
         const dateStr = formatDate(date);
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(buffer);
+        const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
+        const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
         if (plate === 'ทั้งหมด') {
-            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
             var carDataRow = 5;
             var travelDataRow = 3;
             for (let plateNum of plateNums) {
                 const snapshot = await get(rtref(rtdb, `usage/${plateNum}/${dateStr}`));
                 const count = await snapshot.val();
                 for (let i = 1; i <= count; i++, carDataRow++, travelDataRow++) {
-                    const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-                    const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
                     let data = await downloadData(dateStr, plateNum, i, "")
-                    console.log(data);
                     await writeCarData(carDataSheet, data, carDataRow);
                     await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plateNum, i);
                     console.log(`Finished writing ${plateNum}(${i})'s data.`);
                 }
             }
-            fitCellWithContent(carDataSheet);
-            fitCellWithContent(travelDataSheet);
-            downloadAsXlsx(workbook, "All", dateStr);
         } else {
             if (mode === "byPlate") {
                 const dateList = getDateStringArray(new Date(dateStr), new Date(formatDate(endDate)))
-                console.log(dateList)
                 for (let day of dateList) {
-                    console.log(day);
-                    try {
-                        const snapshot = await get(rtref(rtdb, `usage/${plate}/${day}`));
-                        const count = await snapshot.val();
-                        for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
-                            const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-                            const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
-                            let data = await downloadData(day, plate, i, "");
-                            await writeCarData(carDataSheet, data, carDataRow);
-                            await writeTravelData(travelDataSheet, data, travelDataRow, day, plate, count);
-                            fitCellWithContent(carDataSheet);
-                            fitCellWithContent(travelDataSheet);
-                        }
-                        downloadAsXlsx(workbook, plate, dateStr);
-                    } catch (e) {
-                        console.log(e.message)
-                    }
+                    await writeDataToWorkbook(carDataSheet, travelDataSheet, plate, day);
                 }
             } else {
-                const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
-                const count = await snapshot.val();
-                for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
-                    const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
-                    const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
-                    let data = await downloadData(dateStr, plate, i, "")
-                    console.log(data);
-                    await writeCarData(carDataSheet, data, carDataRow);
-                    await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, count);
-                    fitCellWithContent(carDataSheet);
-                    fitCellWithContent(travelDataSheet);
-                }
-                downloadAsXlsx(workbook, plate, dateStr);
+                await writeDataToWorkbook(carDataSheet, travelDataSheet, plate, dateStr);
             }
+        }
+        fitCellWithContent(carDataSheet);
+        fitCellWithContent(travelDataSheet);
+        downloadAsXlsx(workbook, plate, dateStr);
+    }
+
+    async function writeDataToWorkbook(carDataSheet, travelDataSheet, plate, dateStr) {
+        const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
+        const count = await snapshot.val();
+        for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
+            let data = await downloadData(dateStr, plate, i, "")
+            await writeCarData(carDataSheet, data, carDataRow);
+            await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, i);
+            console.log(`Finished writing ${plate}(${i})'s data.`);
         }
     }
 
@@ -449,15 +416,34 @@ export default function Admin({navigation}) {
                     />
                 )}
             </View>
+            {mode === 'byPlate' && (
+                <div style={
+                    {
+                        color: "#FFF",
+                        textAlign: "center"
+                    }
+                }>
+                    วันที่
+                </div>
+            )}
             <MyWebDatePicker
                 date={date}
                 setDate={setDate}
             />
             {mode === 'byPlate' && (
-                <MyWebDatePicker
-                    date={endDate}
-                    setDate={setEndDate}
-                />
+                <div style={
+                    {
+                        color: "#FFF",
+                        textAlign: "center"
+                    }
+                }>
+                    ถึงวันที่
+                    <br />
+                    <MyWebDatePicker
+                        date={endDate}
+                        setDate={setEndDate}
+                    />
+                </div>
             )}
             <Picker
                 style={styles.selector}
