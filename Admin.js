@@ -264,15 +264,15 @@ export default function Admin({navigation}) {
                         for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
                             const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
                             const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
-                            let data = await downloadData(day, plate, i, "")
-                            console.log(data);
+                            let data = await downloadData(day, plate, i, "");
                             await writeCarData(carDataSheet, data, carDataRow);
                             await writeTravelData(travelDataSheet, data, travelDataRow, day, plate, count);
                             fitCellWithContent(carDataSheet);
                             fitCellWithContent(travelDataSheet);
                         }
-                        downloadAsXlsx(workbook, data["plate"], dateStr);
+                        downloadAsXlsx(workbook, plate, dateStr);
                     } catch (e) {
+                        console.log(e.message)
                     }
                 }
             } else {
@@ -348,7 +348,10 @@ export default function Admin({navigation}) {
         let cellDatas = {
             "A": data["date"],
             "B": data["plate"],
+            "C": data["mile"],
             "D": data["name"],
+            "E": data["alcohol"].toString().toLowerCase() === "true" ? "✓" : "X",
+            "F": data["drug"].toString().toLowerCase() === "true" ? "✓" : "X",
             "G": data["startLocation"],
             "I": restOne["location"],
             "J": restOneTime[0],
@@ -400,7 +403,7 @@ export default function Admin({navigation}) {
                 )
             );
         } else {
-            setPlateSelect([...plateNums, 'ทั้งหมด']);
+            setPlateSelect(['ทั้งหมด', ...plateNums]);
             setFilteredOptions(
                 plateSelect.filter((option) =>
                     option.toLowerCase().includes(query.toLowerCase())
@@ -462,8 +465,8 @@ export default function Admin({navigation}) {
                 onValueChange={(itemValue, itemIndex) =>
                     handleSetMode(itemValue)
                 }>
-                <Picker.Item label="by date" value="byDate"/>
-                <Picker.Item label="by plate" value="byPlate"/>
+                <Picker.Item label="ตามวันที่" value="byDate"/>
+                <Picker.Item label="ตามทะเบียน" value="byPlate"/>
             </Picker>
             <TouchableOpacity style={styles.loginBtn} onPress={handleDownloadPress}>
                 <Text>ดาวน์โหลด</Text>

@@ -474,8 +474,8 @@ const Screen = ({navigation}) => {
                 <CheckBoxWrapper label="ผ้าใบปิดคลุม" value={cover} setValue={setCover} fix={coverFix}
                                  setFix={setCoverFix}
                                  note={coverNote} setNote={setCoverNote}/>
-                <CheckBoxWrapper label="alcohol" value={alcohol} setValue={setAlcohol}/>
-                <CheckBoxWrapper label="drug" value={drug} setValue={setDrug}/>
+                <CheckBoxWrapper label="ปริมาณ แอลกอฮอร์ ไม่เกิน 0%" value={alcohol} setValue={setAlcohol}/>
+                <CheckBoxWrapper label="ไม่เคยใช้สารเสพติด ก่อน, ระหว่าง และ หลังปฎิบัติงาน" value={drug} setValue={setDrug}/>
             </View>
             <TextInput
                 style={styles.nameInput}
@@ -486,7 +486,7 @@ const Screen = ({navigation}) => {
             <TextInput
                 style={styles.nameInput}
                 value={mile}
-                placeholder="mile"
+                placeholder="เลขไมค์ ณ.วันที่ตรวจสอบ"
                 onChangeText={(text) => setMile(text)}
             />
             <View style={styles.search}>
