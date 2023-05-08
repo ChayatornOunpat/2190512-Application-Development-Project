@@ -36,26 +36,6 @@ function CheckBoxWrapper({label, value, setValue, note, setNote, fix, setFix}) {
                     </View>
                 </TouchableWithoutFeedback>
             </View>
-            {note !== undefined && (
-                <View>
-                    {!value && (
-                        <View>
-                            <TextInput
-                                style={styles.noteAndFix}
-                                placeholder="บันทึก"
-                                onChangeText={text => setNote(text)}
-                                value={note}
-                            />
-                            <TextInput
-                                style={styles.noteAndFix}
-                                placeholder="จะแก้ไขเมื่อ"
-                                onChangeText={text => setFix(text)}
-                                value={fix}
-                            />
-                        </View>
-                    )}
-                </View>
-            )}
         </View>
     );
 }

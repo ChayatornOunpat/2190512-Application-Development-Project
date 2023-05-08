@@ -204,6 +204,9 @@ export default function Admin({navigation}) {
         return dateArray;
     }
 
+    var carDataRow;
+    var travelDataRow;
+
     const handleDownloadPress = async () => {
         let fileRef = ref(storage, `DatabaseTemplate.xlsx`);
         var buffer;
@@ -221,18 +224,11 @@ export default function Admin({navigation}) {
         await workbook.xlsx.load(buffer);
         const carDataSheet = workbook.getWorksheet("รายงานการตรวจสภาพรถ");
         const travelDataSheet = workbook.getWorksheet("รายงานการเดินทาง");
+        carDataRow = 5;
+        travelDataRow = 3;
         if (plate === 'ทั้งหมด') {
-            var carDataRow = 5;
-            var travelDataRow = 3;
             for (let plateNum of plateNums) {
-                const snapshot = await get(rtref(rtdb, `usage/${plateNum}/${dateStr}`));
-                const count = await snapshot.val();
-                for (let i = 1; i <= count; i++, carDataRow++, travelDataRow++) {
-                    let data = await downloadData(dateStr, plateNum, i, "")
-                    await writeCarData(carDataSheet, data, carDataRow);
-                    await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plateNum, i);
-                    console.log(`Finished writing ${plateNum}(${i})'s data.`);
-                }
+                await writeDataToWorkbook(carDataSheet, travelDataSheet, plateNum, dateStr);
             }
         } else {
             if (mode === "byPlate") {
@@ -252,7 +248,7 @@ export default function Admin({navigation}) {
     async function writeDataToWorkbook(carDataSheet, travelDataSheet, plate, dateStr) {
         const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
         const count = await snapshot.val();
-        for (let i = 1, carDataRow = 5, travelDataRow = 3; i <= count; i++, carDataRow++, travelDataRow++) {
+        for (let i = 1; i <= count; i++, carDataRow++, travelDataRow++) {
             let data = await downloadData(dateStr, plate, i, "")
             await writeCarData(carDataSheet, data, carDataRow);
             await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, i);
@@ -320,22 +316,21 @@ export default function Admin({navigation}) {
             "E": data["alcohol"].toString().toLowerCase() === "true" ? "✓" : "X",
             "F": data["drug"].toString().toLowerCase() === "true" ? "✓" : "X",
             "G": data["startLocation"],
-            "I": restOne["location"],
-            "J": restOneTime[0],
-            "K": restOneTime[1],
-            "L": restOneExit["time"].split(' ')[1],
-            "H": destination["location"],
-            "M": destination["location"],
-            "N": destinationTime[0],
-            "O": destinationTime[1],
-            "P": destinationExit["time"].split(' ')[1],
-            "Q": restTwo ? restTwo["location"] : "-",
-            "R": restTwo ? restTwoTime[0] : "-",
-            "S": restTwo ? restTwoTime[1] : "-",
-            "T": restTwoExit ? restTwoExit["time"].split(' ')[1] : "-",
-            "U": end["location"],
-            "V": endTime[0],
-            "W": endTime[1]
+            "H": restOne["location"],
+            "I": restOneTime[0],
+            "J": restOneTime[1],
+            "K": restOneExit["time"].split(' ')[1],
+            "L": destination["location"],
+            "M": destinationTime[0],
+            "N": destinationTime[1],
+            "O": destinationExit["time"].split(' ')[1],
+            "P": restTwo ? restTwo["location"] : "-",
+            "Q": restTwo ? restTwoTime[0] : "-",
+            "R": restTwo ? restTwoTime[1] : "-",
+            "S": restTwoExit ? restTwoExit["time"].split(' ')[1] : "-",
+            "T": end["location"],
+            "U": endTime[0],
+            "V": endTime[1]
         }
         for (let col of Object.keys(cellDatas)) {
             const cell = sheet.getCell(`${col}${row}`);
