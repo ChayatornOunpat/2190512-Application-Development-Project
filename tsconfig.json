@@ -1,0 +1,17 @@
+{
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": [],
+    "lib": ["dom", "es2019"]
+  },
+  "include": ["App.tsx", "src/**/*"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", ".expo"]
+}

@@ -58,10 +58,10 @@ importers:
         version: 18.1.0
       react-date-picker:
         specifier: ^10.0.0
-        version: 10.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+        version: 10.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       react-datetime-picker:
         specifier: ^5.0.0
-        version: 5.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+        version: 5.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       react-dom:
         specifier: 18.1.0
         version: 18.1.0(react@18.1.0)
@@ -93,6 +93,18 @@ importers:
       '@babel/core':
         specifier: ^7.12.9
         version: 7.29.0
+      '@tsconfig/react-native':
+        specifier: ^3.0.0
+        version: 3.0.9
+      '@types/react':
+        specifier: ~18.0.24
+        version: 18.0.38
+      '@types/react-native':
+        specifier: ~0.70.6
+        version: 0.70.19
+      typescript:
+        specifier: ~4.9.4
+        version: 4.9.5
 
 packages:
 
@@ -1309,6 +1321,9 @@ packages:
   '@sinclair/typebox@0.27.10':
     resolution: {integrity: sha512-MTBk/3jGLNB2tVxv6uLlFh1iu64iYOQ2PbdOSK3NW8JZsmlaOh2q6sdtKowBhfw8QFLmYNzTW4/oK4uATIi6ZA==}
 
+  '@tsconfig/react-native@3.0.9':
+    resolution: {integrity: sha512-+PuvMuxb0OTHo/o04vEQI7LfUoiPH33pePvAH+qxf5ZPsRAVwtespj7LqysOTAYcsmRvjLPjik7V8pIcm84dEQ==}
+
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
 
@@ -1388,6 +1403,9 @@ packages:
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
 
+  '@types/prop-types@15.7.15':
+    resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
+
   '@types/qs@6.15.0':
     resolution: {integrity: sha512-JawvT8iBVWpzTrz3EGw9BTQFg3BQNmwERdKE22vlTxawwtbyUSlMppvZYKLZzB5zgACXdXxbD3m1bXaMqP/9ow==}
 
@@ -1400,11 +1418,14 @@ packages:
   '@types/react-native@0.70.19':
     resolution: {integrity: sha512-c6WbyCgWTBgKKMESj/8b4w+zWcZSsCforson7UdXtXMecG3MxCinYi6ihhrHVPyUrVzORsvEzK8zg32z4pK6Sg==}
 
-  '@types/react@19.2.14':
-    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
+  '@types/react@18.0.38':
+    resolution: {integrity: sha512-ExsidLLSzYj4cvaQjGnQCk4HFfVT9+EZ9XZsQ8Hsrcn8QNgXtpZ3m9vSIC2MWtx7jHictK6wYhQgGh6ic58oOw==}
 
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
+
+  '@types/scheduler@0.26.0':
+    resolution: {integrity: sha512-WFHp9YUJQ6CKshqoC37iOlHnQSmxNc795UhB26CyBBttrN9svdIrUjl/NjnNmfcwtncN0h/0PPAFWv9ovP8mLA==}
 
   '@types/send@0.17.6':
     resolution: {integrity: sha512-Uqt8rPBE8SY0RK8JB1EzVOIZ32uqy8HwdxCnoCOsYrvnswqmFZ/k+9Ikidlk/ImhsdvBsloHbAlewb2IEBV/Og==}
@@ -5309,6 +5330,11 @@ packages:
     resolution: {integrity: sha512-q7QNVDGTdl702bVFiI5eY4l/HkgCM6at9KhcFbgUAzezHFbOVy4+0O/lCjsABEQwbZPravVfBIiBVGo89yzHFg==}
     engines: {node: '>= 0.4'}
 
+  typescript@4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+
   ua-parser-js@1.0.41:
     resolution: {integrity: sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==}
     hasBin: true
@@ -7614,6 +7640,8 @@ snapshots:
 
   '@sinclair/typebox@0.27.10': {}
 
+  '@tsconfig/react-native@3.0.9': {}
+
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
@@ -7712,24 +7740,30 @@ snapshots:
     dependencies:
       undici-types: 7.19.2
 
+  '@types/prop-types@15.7.15': {}
+
   '@types/qs@6.15.0': {}
 
   '@types/range-parser@1.2.7': {}
 
   '@types/react-native-vector-icons@6.4.18':
     dependencies:
-      '@types/react': 19.2.14
+      '@types/react': 18.0.38
       '@types/react-native': 0.70.19
 
   '@types/react-native@0.70.19':
     dependencies:
-      '@types/react': 19.2.14
+      '@types/react': 18.0.38
 
-  '@types/react@19.2.14':
+  '@types/react@18.0.38':
     dependencies:
+      '@types/prop-types': 15.7.15
+      '@types/scheduler': 0.26.0
       csstype: 3.2.3
 
   '@types/retry@0.12.0': {}
+
+  '@types/scheduler@0.26.0': {}
 
   '@types/send@0.17.6':
     dependencies:
@@ -11304,7 +11338,7 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-calendar@4.8.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-calendar@4.8.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       '@wojtekmaj/date-utils': 1.5.1
       clsx: 2.1.1
@@ -11313,8 +11347,10 @@ snapshots:
       react: 18.1.0
       react-dom: 18.1.0(react@18.1.0)
       warning: 4.0.3
+    optionalDependencies:
+      '@types/react': 18.0.38
 
-  react-clock@4.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-clock@4.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       '@wojtekmaj/date-utils': 1.5.1
       clsx: 2.1.1
@@ -11322,8 +11358,10 @@ snapshots:
       prop-types: 15.8.1
       react: 18.1.0
       react-dom: 18.1.0(react@18.1.0)
+    optionalDependencies:
+      '@types/react': 18.0.38
 
-  react-date-picker@10.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-date-picker@10.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       '@wojtekmaj/date-utils': 1.5.1
       clsx: 2.1.1
@@ -11331,14 +11369,16 @@ snapshots:
       make-event-props: 1.6.2
       prop-types: 15.8.1
       react: 18.1.0
-      react-calendar: 4.8.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-calendar: 4.8.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       react-dom: 18.1.0(react@18.1.0)
-      react-fit: 1.7.1(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-fit: 1.7.1(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       update-input-width: 1.4.2
+    optionalDependencies:
+      '@types/react': 18.0.38
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  react-datetime-picker@5.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-datetime-picker@5.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       '@wojtekmaj/date-utils': 1.5.1
       clsx: 2.1.1
@@ -11346,12 +11386,14 @@ snapshots:
       make-event-props: 1.6.2
       prop-types: 15.8.1
       react: 18.1.0
-      react-calendar: 4.8.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
-      react-clock: 4.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
-      react-date-picker: 10.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-calendar: 4.8.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-clock: 4.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-date-picker: 10.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       react-dom: 18.1.0(react@18.1.0)
-      react-fit: 1.7.1(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
-      react-time-picker: 6.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-fit: 1.7.1(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-time-picker: 6.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+    optionalDependencies:
+      '@types/react': 18.0.38
     transitivePeerDependencies:
       - '@types/react-dom'
 
@@ -11369,13 +11411,15 @@ snapshots:
       react: 18.1.0
       scheduler: 0.22.0
 
-  react-fit@1.7.1(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-fit@1.7.1(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       detect-element-overflow: 1.4.2
       prop-types: 15.8.1
       react: 18.1.0
       react-dom: 18.1.0(react@18.1.0)
       tiny-warning: 1.0.3
+    optionalDependencies:
+      '@types/react': 18.0.38
 
   react-freeze@1.0.4(react@18.1.0):
     dependencies:
@@ -11534,7 +11578,7 @@ snapshots:
       react: 18.1.0
       react-is: 18.3.1
 
-  react-time-picker@6.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
+  react-time-picker@6.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0):
     dependencies:
       '@wojtekmaj/date-utils': 1.5.1
       clsx: 2.1.1
@@ -11542,10 +11586,12 @@ snapshots:
       make-event-props: 1.6.2
       prop-types: 15.8.1
       react: 18.1.0
-      react-clock: 4.6.0(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-clock: 4.6.0(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       react-dom: 18.1.0(react@18.1.0)
-      react-fit: 1.7.1(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
+      react-fit: 1.7.1(@types/react@18.0.38)(react-dom@18.1.0(react@18.1.0))(react@18.1.0)
       update-input-width: 1.4.2
+    optionalDependencies:
+      '@types/react': 18.0.38
     transitivePeerDependencies:
       - '@types/react-dom'
 
@@ -12325,6 +12371,8 @@ snapshots:
       math-intrinsics: 1.1.0
       typed-array-buffer: 1.0.3
       typed-array-byte-offset: 1.0.4
+
+  typescript@4.9.5: {}
 
   ua-parser-js@1.0.41: {}
 
