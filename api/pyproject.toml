@@ -1,0 +1,22 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "aiomysql>=0.3.2",
+    "bcrypt>=5.0.0",
+    "click>=8.3.2",
+    "cryptography>=46.0.7",
+    "hypercorn>=0.18.0",
+    "pydantic[email]>=2.13.3",
+    "pydantic-settings>=2.14.0",
+    "pyjwt>=2.12.1",
+    "quart>=0.20.0",
+    "tortoise-orm>=1.1.7",
+    "quart-schema>=0.23.0",
+]
+
+[tool.tortoise]
+config_module = "core.db"
+config_attr = "TORTOISE_ORM"
