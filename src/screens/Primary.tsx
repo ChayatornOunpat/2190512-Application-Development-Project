@@ -8,26 +8,21 @@ import {
   View,
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import {
-  getMetadata,
-  ref,
-  uploadString,
-} from 'firebase/storage';
-import { doc, getDoc } from 'firebase/firestore';
-import {
-  onValue,
-  ref as rtref,
-  update as rtupdate,
-} from 'firebase/database';
-import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import Geocoder from 'react-native-geocoding';
 
 import { styles } from '../styles';
 import { CheckBoxWrapper } from '../components/CheckBoxWrapper';
-import { auth, storageRef, db, rtdb } from '../../firebase-config';
-import { mapsKey } from '../../api-key';
+import { currentUser, signOut } from '../api/auth';
+import { listPlates } from '../api/plates';
+import { watchSessionField, startSession } from '../api/sessions';
+import { getPlateLockHolderUid, claimPlateLock } from '../api/plateLocks';
+import { getHistoricalSessionCount } from '../api/usage';
+import { uploadSessionBlob } from '../api/sessionBlobs';
+import type { SessionBlob } from '../types/domain';
 import type { RootStackParamList } from '../types/navigation';
+
+const mapsKey = '';
 
 type Props = StackScreenProps<RootStackParamList, 'Primary'>;
 
@@ -134,31 +129,18 @@ export const Screen = ({ navigation }: Props) => {
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/working`);
-    onValue(workingRef, (snapshot) => {
-      const value = snapshot.val();
+    watchSessionField(user.uid, 'working', (value) => {
       if (value) {
         navigation.navigate('Driving');
       }
     });
   }, [navigation]);
 
-  function readDataFromFirestore(key: string): Promise<string[] | null> {
-    const documentRef = doc(db, 'plates', 'plates');
-    return getDoc(documentRef).then((documentSnapshot) => {
-      if (documentSnapshot.exists()) {
-        const data = documentSnapshot.data();
-        return data[key] as string[];
-      }
-      return null;
-    });
-  }
-
   useEffect(() => {
-    readDataFromFirestore('plates').then((data) => {
-      if (data) setPlateNums(data);
+    listPlates().then((data) => {
+      if (data.length) setPlateNums(data);
     });
   }, []);
 
@@ -175,7 +157,7 @@ export const Screen = ({ navigation }: Props) => {
   };
 
   function handleSignOutPress() {
-    signOut(auth)
+    signOut()
       .then(() => navigation.navigate('SignIn'))
       .catch((error: Error) => alert(error.message));
   }
@@ -210,6 +192,8 @@ export const Screen = ({ navigation }: Props) => {
       alert('โปรดใส่ทะเบียนรถก่อนส่ง');
       return;
     }
+    const user = currentUser.value;
+    if (!user) return;
 
     const currentDate = new Date();
     const utcOffset = 7;
@@ -219,169 +203,119 @@ export const Screen = ({ navigation }: Props) => {
     const timeStr = utcDate.toISOString().slice(11, 19);
     const dateTime = dateStr + ' ' + timeStr;
 
-    async function inner(count: number) {
-      const location = await getLocation();
-      if (location === undefined) {
-        return;
-      }
-
-      const data = {
-        law,
-        tax,
-        insurance,
-        passport,
-        headlight,
-        turnlight,
-        toplight,
-        lubeoil,
-        tankcoolant,
-        percipitation,
-        opsname,
-        doormirror,
-        tire,
-        tirehub,
-        tirehub2,
-        tirehub3,
-        tirehub4,
-        spare,
-        pressure,
-        extinguisher,
-        tiresupport,
-        cone,
-        breaklight,
-        reverselight,
-        backturnlight,
-        structuralintegrity,
-        fastener,
-        cover,
-        plate,
-        law_note: lawNote,
-        tax_note: taxNote,
-        insurance_note: insuranceNote,
-        passport_note: passportNote,
-        headlight_note: headlightNote,
-        turnlight_note: turnlightNote,
-        toplight_note: toplightNote,
-        lubeoil_note: lubeoilNote,
-        tankcoolant_note: tankcoolantNote,
-        percipitation_note: percipitationNote,
-        opsname_note: opsnameNote,
-        doormirror_note: doormirrorNote,
-        tire_note: tireNote,
-        tirehub_note: tirehubNote,
-        tirehub2_note: tirehub2Note,
-        tirehub3_note: tirehub3Note,
-        tirehub4_note: tirehub4Note,
-        spare_note: spareNote,
-        pressure_note: pressureNote,
-        extinguisher_note: extinguisherNote,
-        tiresupport_note: tiresupportNote,
-        cone_note: coneNote,
-        breaklight_note: breaklightNote,
-        reverselight_note: reverselightNote,
-        backturnlight_note: backturnlightNote,
-        structuralintegrity_note: structuralintegrityNote,
-        fastener_note: fastenerNote,
-        cover_note: coverNote,
-        law_fix: lawFix,
-        tax_fix: taxFix,
-        insurance_fix: insuranceFix,
-        passport_fix: passportFix,
-        headlight_fix: headlightFix,
-        turnlight_fix: turnlightFix,
-        toplight_fix: toplightFix,
-        lubeoil_fix: lubeoilFix,
-        tankcoolant_fix: tankcoolantFix,
-        percipitation_fix: percipitationFix,
-        opsname_fix: opsnameFix,
-        doormirror_fix: doormirrorFix,
-        tire_fix: tireFix,
-        tirehub_fix: tirehubFix,
-        tirehub2_fix: tirehub2Fix,
-        tirehub3_fix: tirehub3Fix,
-        tirehub4_fix: tirehub4Fix,
-        spare_fix: spareFix,
-        pressure_fix: pressureFix,
-        extinguisher_fix: extinguisherFix,
-        tiresupport_fix: tiresupportFix,
-        cone_fix: coneFix,
-        breaklight_fix: breaklightFix,
-        reverselight_fix: reverselightFix,
-        backturnlight_fix: backturnlightFix,
-        structuralintegrity_fix: structuralintegrityFix,
-        fastener_fix: fastenerFix,
-        cover_fix: coverFix,
-        alcohol,
-        drug,
-        mile,
-        date: dateTime,
-        name,
-        startLocation: location,
-      };
-
-      const jsonData = JSON.stringify(data);
-      const dataRef = ref(storageRef, `${plate}_${dateStr}_${count}.json`);
-
-      getMetadata(dataRef)
-        .then(() => {
-          uploadString(dataRef, jsonData)
-            .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-            .catch((error: Error) => alert('เกิดปัญหาในการอัปโหลด: ' + error.message));
-        })
-        .catch(() => {
-          uploadString(dataRef, jsonData)
-            .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-            .catch((error: Error) => alert('เกิดปัญหาในการอัปโหลด: ' + error.message));
-        });
+    const holder = await getPlateLockHolderUid(plate);
+    if (holder !== null) {
+      alert('this car is currently being driven by someone else');
+      return;
     }
 
-    const Ref = rtref(rtdb, `${plate}/user`);
-    const listener = onValue(Ref, (snapshot) => {
-      listener();
-      const value = snapshot.val();
-      if (value === null) {
-        const user = auth.currentUser;
-        if (!user) return;
-        const userID = user.uid;
-        const userRef = rtref(rtdb, userID);
-        const userObj = {
-          plate,
-          working: true,
-          rest1: false,
-          rest2: false,
-          destination: false,
-          passRest1: false,
-          passRest2: false,
-          passDestination: false,
-        };
-        rtupdate(userRef, userObj)
-          .then(() => console.log('success'))
-          .catch((error: Error) => console.log(error));
+    await startSession(user.uid, plate);
+    const count = (await getHistoricalSessionCount(plate, dateStr)) + 1;
+    await claimPlateLock(plate, user.uid, dateStr, count);
 
-        const countRef = rtref(rtdb, `usage/${plate}/${dateStr}`);
-        const unsubscribe = onValue(countRef, (countSnapshot) => {
-          unsubscribe();
-          let count: number | null = countSnapshot.val();
-          if (count === null) count = 0;
+    const location = await getLocation();
+    if (location === undefined) return;
 
-          const plateRef = rtref(rtdb, plate);
-          const plateObj = {
-            active: true,
-            user: userID,
-            refDate: dateStr,
-            usage: count + 1,
-          };
-          rtupdate(plateRef, plateObj)
-            .then(() => console.log('success'))
-            .catch((error: Error) => console.log(error));
-          inner(count + 1);
-        });
-      }
-      if (value !== null) {
-        console.log('time');
-        alert('this car is currently being driven by someone else');
-      }
-    });
+    const blob: SessionBlob = {
+      law,
+      tax,
+      insurance,
+      passport,
+      headlight,
+      turnlight,
+      toplight,
+      lubeoil,
+      tankcoolant,
+      percipitation,
+      opsname,
+      doormirror,
+      tire,
+      tirehub,
+      tirehub2,
+      tirehub3,
+      tirehub4,
+      spare,
+      pressure,
+      extinguisher,
+      tiresupport,
+      cone,
+      breaklight,
+      reverselight,
+      backturnlight,
+      structuralintegrity,
+      fastener,
+      cover,
+      plate,
+      law_note: lawNote,
+      tax_note: taxNote,
+      insurance_note: insuranceNote,
+      passport_note: passportNote,
+      headlight_note: headlightNote,
+      turnlight_note: turnlightNote,
+      toplight_note: toplightNote,
+      lubeoil_note: lubeoilNote,
+      tankcoolant_note: tankcoolantNote,
+      percipitation_note: percipitationNote,
+      opsname_note: opsnameNote,
+      doormirror_note: doormirrorNote,
+      tire_note: tireNote,
+      tirehub_note: tirehubNote,
+      tirehub2_note: tirehub2Note,
+      tirehub3_note: tirehub3Note,
+      tirehub4_note: tirehub4Note,
+      spare_note: spareNote,
+      pressure_note: pressureNote,
+      extinguisher_note: extinguisherNote,
+      tiresupport_note: tiresupportNote,
+      cone_note: coneNote,
+      breaklight_note: breaklightNote,
+      reverselight_note: reverselightNote,
+      backturnlight_note: backturnlightNote,
+      structuralintegrity_note: structuralintegrityNote,
+      fastener_note: fastenerNote,
+      cover_note: coverNote,
+      law_fix: lawFix,
+      tax_fix: taxFix,
+      insurance_fix: insuranceFix,
+      passport_fix: passportFix,
+      headlight_fix: headlightFix,
+      turnlight_fix: turnlightFix,
+      toplight_fix: toplightFix,
+      lubeoil_fix: lubeoilFix,
+      tankcoolant_fix: tankcoolantFix,
+      percipitation_fix: percipitationFix,
+      opsname_fix: opsnameFix,
+      doormirror_fix: doormirrorFix,
+      tire_fix: tireFix,
+      tirehub_fix: tirehubFix,
+      tirehub2_fix: tirehub2Fix,
+      tirehub3_fix: tirehub3Fix,
+      tirehub4_fix: tirehub4Fix,
+      spare_fix: spareFix,
+      pressure_fix: pressureFix,
+      extinguisher_fix: extinguisherFix,
+      tiresupport_fix: tiresupportFix,
+      cone_fix: coneFix,
+      breaklight_fix: breaklightFix,
+      reverselight_fix: reverselightFix,
+      backturnlight_fix: backturnlightFix,
+      structuralintegrity_fix: structuralintegrityFix,
+      fastener_fix: fastenerFix,
+      cover_fix: coverFix,
+      alcohol,
+      drug,
+      mile,
+      date: dateTime,
+      name,
+      startLocation: location,
+    };
+
+    try {
+      await uploadSessionBlob(plate, dateStr, count, blob);
+      alert('อัปโหลดข้อมูลสำเร็จ');
+    } catch (error) {
+      alert('เกิดปัญหาในการอัปโหลด: ' + (error as Error).message);
+    }
   };
 
   const handleItemSelect = (item: string) => {

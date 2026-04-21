@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Alert, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 
 import { styles } from '../styles';
-import { auth } from '../../firebase-config';
+import { signIn } from '../api/auth';
 import type { RootStackParamList } from '../types/navigation';
 
 type Props = StackScreenProps<RootStackParamList, 'SignIn'>;
@@ -15,7 +14,7 @@ export function Authenticate({ navigation }: Props) {
 
   const handleSignInPress = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signIn(email, password);
       navigation.navigate('Primary');
     } catch (error) {
       Alert.alert((error as Error).message);

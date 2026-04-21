@@ -1,24 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import {
-  getMetadata,
-  ref,
-  uploadString,
-} from 'firebase/storage';
-import {
-  onValue,
-  ref as rtref,
-  update as rtupdate,
-} from 'firebase/database';
-import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
 import Geocoder from 'react-native-geocoding';
 
 import { styles } from '../styles';
-import { auth, storageRef, rtdb } from '../../firebase-config';
-import { mapsKey } from '../../api-key';
+import { currentUser, signOut } from '../api/auth';
+import {
+  watchSessionField,
+  markCheckpointReached,
+  endSession,
+} from '../api/sessions';
+import { releasePlateLock } from '../api/plateLocks';
+import {
+  getCurrentSessionIndex,
+  getCurrentSessionDate,
+  recordHistoricalSession,
+} from '../api/usage';
+import {
+  uploadCheckpointBlob,
+  type CheckpointBlob,
+  type CheckpointSuffix,
+} from '../api/sessionBlobs';
 import type { RootStackParamList } from '../types/navigation';
+
+const mapsKey = '';
 
 type Props = StackScreenProps<RootStackParamList, 'Driving'>;
 
@@ -54,11 +60,9 @@ export const Driving = ({ navigation }: Props) => {
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/working`);
-    onValue(workingRef, (snapshot) => {
-      const value = snapshot.val();
+    watchSessionField(user.uid, 'working', (value) => {
       if (!value) {
         navigation.navigate('Primary');
       }
@@ -66,71 +70,63 @@ export const Driving = ({ navigation }: Props) => {
   }, [navigation]);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/rest1`);
-    onValue(workingRef, (snapshot) => {
-      setRest1(!!snapshot.val());
+    watchSessionField(user.uid, 'rest1', (value) => {
+      setRest1(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/rest2`);
-    onValue(workingRef, (snapshot) => {
-      setRest2(!!snapshot.val());
+    watchSessionField(user.uid, 'rest2', (value) => {
+      setRest2(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/destination`);
-    onValue(workingRef, (snapshot) => {
-      setDestination(!!snapshot.val());
+    watchSessionField(user.uid, 'destination', (value) => {
+      setDestination(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/passRest1`);
-    onValue(workingRef, (snapshot) => {
-      setPassRest1(!!snapshot.val());
+    watchSessionField(user.uid, 'passRest1', (value) => {
+      setPassRest1(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/passRest2`);
-    onValue(workingRef, (snapshot) => {
-      setPassRest2(!!snapshot.val());
+    watchSessionField(user.uid, 'passRest2', (value) => {
+      setPassRest2(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const workingRef = rtref(rtdb, `${user.uid}/passDestination`);
-    onValue(workingRef, (snapshot) => {
-      setPassDestination(!!snapshot.val());
+    watchSessionField(user.uid, 'passDestination', (value) => {
+      setPassDestination(!!value);
     });
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const plateRef = rtref(rtdb, `${user.uid}/plate`);
-    onValue(plateRef, (plateSnapshot) => {
-      const plateVal = plateSnapshot.val();
-      setPlate(plateVal ?? '');
+    watchSessionField(user.uid, 'plate', (value) => {
+      setPlate(value ?? '');
     });
   }, []);
 
   function handleSignOutPress() {
-    signOut(auth)
+    signOut()
       .then(() => navigation.navigate('SignIn'))
       .catch((error: Error) => alert(error.message));
   }
@@ -159,38 +155,29 @@ export const Driving = ({ navigation }: Props) => {
   }
 
   async function logCheckpoint(opts: {
-    suffix: string;
+    suffix: CheckpointSuffix;
     field: CheckpointField;
     includeLocation: boolean;
   }): Promise<void> {
     const { dateTime } = buildDateTime();
     const location = opts.includeLocation ? await getLocation() : undefined;
-    const data: Record<string, string | undefined> = opts.includeLocation
+    const blob: CheckpointBlob = opts.includeLocation
       ? { time: dateTime, location }
       : { time: dateTime };
-    const jsonData = JSON.stringify(data);
 
-    const countRef = rtref(rtdb, `${plate}/usage`);
-    const unsubscribe = onValue(countRef, (countSnapshot) => {
-      unsubscribe();
-      const count = countSnapshot.val();
-      const dateRef = rtref(rtdb, `${plate}/refDate`);
-      const stopListen = onValue(dateRef, (dateSnapshot) => {
-        stopListen();
-        const date = dateSnapshot.val();
-        const dataRef = ref(storageRef, `${plate}_${date}_${count}_${opts.suffix}.json`);
-        const upload = () =>
-          uploadString(dataRef, jsonData)
-            .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-            .catch((error: Error) => alert('เกิดปัญหาในการอัปโหลด: ' + error.message));
-        getMetadata(dataRef).then(upload).catch(upload);
-      });
-    });
+    const count = await getCurrentSessionIndex(plate);
+    const date = await getCurrentSessionDate(plate);
+    if (date === null) return;
+    try {
+      await uploadCheckpointBlob(plate, date, count, opts.suffix, blob);
+      alert('อัปโหลดข้อมูลสำเร็จ');
+    } catch (error) {
+      alert('เกิดปัญหาในการอัปโหลด: ' + (error as Error).message);
+    }
 
-    const user = auth.currentUser;
+    const user = currentUser.value;
     if (!user) return;
-    const usersRef = rtref(rtdb, user.uid);
-    rtupdate(usersRef, { [opts.field]: true })
+    markCheckpointReached(user.uid, opts.field)
       .then(() => console.log('success'))
       .catch((error: Error) => console.log(error));
   }
@@ -211,49 +198,30 @@ export const Driving = ({ navigation }: Props) => {
   async function handleEnd() {
     const { dateTime } = buildDateTime();
     const location = await getLocation();
-    const data = { time: dateTime, location };
-    const jsonData = JSON.stringify(data);
+    const blob: CheckpointBlob = { time: dateTime, location };
 
-    const countRef = rtref(rtdb, `${plate}/usage`);
-    const unsubscribe = onValue(countRef, (countSnapshot) => {
-      unsubscribe();
-      const count = countSnapshot.val();
-      const dateRef = rtref(rtdb, `${plate}/refDate`);
-      const stopListen = onValue(dateRef, (dateSnapshot) => {
-        stopListen();
-        const date = dateSnapshot.val();
-        const dataRef = ref(storageRef, `${plate}_${date}_${count}_end.json`);
-        const upload = () =>
-          uploadString(dataRef, jsonData)
-            .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-            .catch((error: Error) => alert('เกิดปัญหาในการอัปโหลด: ' + error.message));
-        getMetadata(dataRef).then(upload).catch(upload);
+    const count = await getCurrentSessionIndex(plate);
+    const date = await getCurrentSessionDate(plate);
+    if (date === null) return;
 
-        const usageRef = rtref(rtdb, `usage/${plate}`);
-        const updateVal: Record<string, number> = {};
-        updateVal[date] = count;
-        rtupdate(usageRef, updateVal);
+    try {
+      await uploadCheckpointBlob(plate, date, count, 'end', blob);
+      alert('อัปโหลดข้อมูลสำเร็จ');
+    } catch (error) {
+      alert('เกิดปัญหาในการอัปโหลด: ' + (error as Error).message);
+    }
 
-        const user = auth.currentUser;
-        if (!user) return;
-        const usersRef = rtref(rtdb);
-        const dbobj: Record<string, Record<string, unknown>> = {};
-        dbobj[user.uid] = {
-          plate: null,
-          working: false,
-          rest1: null,
-          rest2: null,
-          destination: null,
-        };
-        dbobj[plate] = {
-          active: false,
-          user: null,
-        };
-        rtupdate(usersRef, dbobj)
-          .then(() => console.log('success'))
-          .catch((error: Error) => console.log(error));
-      });
-    });
+    await recordHistoricalSession(plate, date, count);
+
+    const user = currentUser.value;
+    if (!user) return;
+    try {
+      await endSession(user.uid);
+      await releasePlateLock(plate);
+      console.log('success');
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (

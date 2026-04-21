@@ -9,20 +9,18 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { createElement } from 'react-native-web';
-import { getDownloadURL, ref } from 'firebase/storage';
-import type { StorageReference } from 'firebase/storage';
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import { get, ref as rtref } from 'firebase/database';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from 'exceljs';
 
 import { styles } from '../styles';
-import { db, rtdb, storage } from '../../firebase-config';
+import { listPlates, replacePlates } from '../api/plates';
+import { getHistoricalSessionCount } from '../api/usage';
+import {
+  downloadTemplate,
+  downloadSessionBlob,
+  downloadCheckpointBlob,
+} from '../api/sessionBlobs';
+import type { SessionBlob } from '../types/domain';
 import type { RootStackParamList } from '../types/navigation';
 
 type Props = StackScreenProps<RootStackParamList, 'Admin'>;
@@ -119,23 +117,9 @@ export default function Admin({ navigation }: Props) {
   const [mode, setMode] = useState<'byDate' | 'byPlate'>('byDate');
   const [selected, setSelected] = useState(false);
 
-  function readDataFromFirestore(
-    key: string,
-    documentRef: ReturnType<typeof doc>,
-  ): Promise<string[] | null> {
-    return getDoc(documentRef).then((documentSnapshot) => {
-      if (documentSnapshot.exists()) {
-        const data = documentSnapshot.data();
-        return data[key] as string[];
-      }
-      return null;
-    });
-  }
-
   useEffect(() => {
-    const documentRef = doc(db, 'plates', 'plates');
-    readDataFromFirestore('plates', documentRef).then((data) => {
-      if (!data) return;
+    listPlates().then((data) => {
+      if (!data.length) return;
       setPlateNums(data);
       setPlateSelect(['ทั้งหมด', ...data]);
     });
@@ -157,68 +141,25 @@ export default function Admin({ navigation }: Props) {
 
   const pickDocument = async () => {
     try {
-      try {
-        const result = await DocumentPicker.getDocumentAsync();
-        if (result.canceled || !result.assets?.length) return;
-        const response = await fetch(result.assets[0].uri);
-        const buffer = await response.arrayBuffer();
-        const workbook = new ExcelJS.Workbook();
-        let plateList: unknown;
-        await workbook.xlsx.load(buffer).then(() => {
-          const worksheet = workbook.getWorksheet('Sheet1')!;
-          const column = worksheet.getColumn('A');
-          const values = column.values as unknown[];
-          values.shift();
-          plateList = values;
-        });
-        const adminDocRef = doc(db, 'plates', 'plates');
-        getDoc(adminDocRef)
-          .then((docSnapshot) => {
-            if (docSnapshot.exists()) {
-              updateDoc(adminDocRef, { plates: plateList })
-                .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-                .catch((error: Error) => alert(`เกิดปัญหาในการอัปโหลด: ${error}`));
-            } else {
-              setDoc(adminDocRef, { plates: plateList })
-                .then(() => alert('อัปโหลดข้อมูลสำเร็จ'))
-                .catch((error: Error) => alert(`เกิดปัญหาในการอัปโหลด: ${error}`));
-            }
-          })
-          .catch((error: Error) => alert(`เกิดปัญหาในการอัปโหลด: ${error}`));
-      } catch (error) {
-        alert(`เกิดปัญหาในการอัปโหลด: ${(error as Error).message}`);
-      }
+      const result = await DocumentPicker.getDocumentAsync();
+      if (result.canceled || !result.assets?.length) return;
+      const response = await fetch(result.assets[0].uri);
+      const buffer = await response.arrayBuffer();
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
+      const worksheet = workbook.getWorksheet('Sheet1')!;
+      const column = worksheet.getColumn('A');
+      const values = column.values as unknown[];
+      values.shift();
+      const plateList = values.filter(
+        (v): v is string => typeof v === 'string',
+      );
+      await replacePlates(plateList);
+      alert('อัปโหลดข้อมูลสำเร็จ');
     } catch (error) {
-      alert(`เกิดปัญหาในการอัปโหลด: ${error}`);
+      alert(`เกิดปัญหาในการอัปโหลด: ${(error as Error).message}`);
     }
   };
-
-  async function downloadFile(fileRef: StorageReference): Promise<Record<string, unknown> | null> {
-    try {
-      const fileSnapshot = await getDownloadURL(fileRef);
-      const fileURL = fileSnapshot.toString();
-      const response = await fetch(fileURL);
-      const blob = await response.blob();
-      const arrayBuffer = await new Response(blob).arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      const textDecoder = new TextDecoder();
-      const jsonString = textDecoder.decode(uint8Array);
-      return JSON.parse(jsonString);
-    } catch {
-      return null;
-    }
-  }
-
-  async function downloadData(
-    date: string,
-    plateNum: string,
-    count: number,
-    fileName: string,
-  ): Promise<Record<string, unknown> | null> {
-    const name = fileName === '' || fileName === null ? '' : `_${fileName}`;
-    const fileRef = ref(storage, `${plateNum}_${date}_${count}${name}.json`);
-    return await downloadFile(fileRef);
-  }
 
   function getDateStringArray(startDate: Date, endDate: Date): string[] {
     const dateArray: string[] = [];
@@ -234,13 +175,9 @@ export default function Admin({ navigation }: Props) {
   var travelDataRow: number = 0;
 
   const handleDownloadPress = async () => {
-    const fileRef = ref(storage, `DatabaseTemplate.xlsx`);
     let buffer: ArrayBuffer;
     try {
-      const fileSnapshot = await getDownloadURL(fileRef);
-      const fileURL = fileSnapshot.toString();
-      const response = await fetch(fileURL);
-      buffer = await response.arrayBuffer();
+      buffer = await downloadTemplate('DatabaseTemplate.xlsx');
     } catch (error) {
       alert(error);
       return;
@@ -277,10 +214,9 @@ export default function Admin({ navigation }: Props) {
     plate: string,
     dateStr: string,
   ) {
-    const snapshot = await get(rtref(rtdb, `usage/${plate}/${dateStr}`));
-    const count = (await snapshot.val()) as number;
+    const count = await getHistoricalSessionCount(plate, dateStr);
     for (let i = 1; i <= count; i++, carDataRow++, travelDataRow++) {
-      const data = await downloadData(dateStr, plate, i, '');
+      const data = await downloadSessionBlob(plate, dateStr, i);
       if (!data) continue;
       await writeCarData(carDataSheet, data, carDataRow);
       await writeTravelData(travelDataSheet, data, travelDataRow, dateStr, plate, i);
@@ -311,17 +247,17 @@ export default function Admin({ navigation }: Props) {
       });
   }
 
-  async function writeCarData(sheet: ExcelJS.Worksheet, data: Record<string, unknown>, row: number) {
+  async function writeCarData(sheet: ExcelJS.Worksheet, data: SessionBlob, row: number) {
     for (const key of Object.keys(data)) {
       if (Object.prototype.hasOwnProperty.call(carDataKeys, key)) {
         const col = carDataKeys[key];
         const cell = sheet.getCell(`${col}${row}`);
         cell.border = borderStyle;
         cell.alignment = cellTextAlignment;
-        const value = data[key];
+        const value = data[key as keyof SessionBlob];
         cell.value =
           typeof value === 'boolean'
-            ? value.toString().toLowerCase() === 'true'
+            ? value
               ? '✓'
               : 'X'
             : !value
@@ -333,48 +269,48 @@ export default function Admin({ navigation }: Props) {
 
   async function writeTravelData(
     sheet: ExcelJS.Worksheet,
-    data: Record<string, unknown>,
+    data: SessionBlob,
     row: number,
     dateStr: string,
     plateNum: string,
     count: number,
   ) {
-    const restOne = await downloadData(dateStr, plateNum, count, 'rest1');
-    const restOneExit = await downloadData(dateStr, plateNum, count, 'passRest1');
+    const restOne = await downloadCheckpointBlob(plateNum, dateStr, count, 'rest1');
+    const restOneExit = await downloadCheckpointBlob(plateNum, dateStr, count, 'passRest1');
     let restOneTime: string[] | undefined;
-    if (restOne) restOneTime = (restOne['time'] as string).split(' ');
-    const destination = await downloadData(dateStr, plateNum, count, 'destination');
-    const destinationExit = await downloadData(dateStr, plateNum, count, 'passDestination');
-    const destinationTime = (destination!['time'] as string).split(' ');
-    const restTwo = await downloadData(dateStr, plateNum, count, 'rest2');
-    const restTwoExit = await downloadData(dateStr, plateNum, count, 'passRest2');
+    if (restOne) restOneTime = restOne.time.split(' ');
+    const destination = await downloadCheckpointBlob(plateNum, dateStr, count, 'destination');
+    const destinationExit = await downloadCheckpointBlob(plateNum, dateStr, count, 'passDestination');
+    const destinationTime = destination!.time.split(' ');
+    const restTwo = await downloadCheckpointBlob(plateNum, dateStr, count, 'rest2');
+    const restTwoExit = await downloadCheckpointBlob(plateNum, dateStr, count, 'passRest2');
     let restTwoTime: string[] | undefined;
-    if (restTwo) restTwoTime = (restTwo['time'] as string).split(' ');
-    const end = await downloadData(dateStr, plateNum, count, 'end');
-    const endTime = (end!['time'] as string).split(' ');
+    if (restTwo) restTwoTime = restTwo.time.split(' ');
+    const end = await downloadCheckpointBlob(plateNum, dateStr, count, 'end');
+    const endTime = end!.time.split(' ');
     console.log(restOne, restOneExit, restTwoExit, restTwo, destinationExit, destination, end);
 
     const cellDatas: Record<string, string | number | undefined> = {
-      A: data['date'] as string,
-      B: data['plate'] as string,
-      C: data['mile'] as string,
-      D: data['name'] as string,
-      E: (data['alcohol'] as boolean)?.toString().toLowerCase() === 'true' ? '✓' : 'X',
-      F: (data['drug'] as boolean)?.toString().toLowerCase() === 'true' ? '✓' : 'X',
-      G: data['startLocation'] as string,
-      H: restOne!['location'] as string,
+      A: data.date,
+      B: data.plate,
+      C: data.mile,
+      D: data.name,
+      E: data.alcohol ? '✓' : 'X',
+      F: data.drug ? '✓' : 'X',
+      G: data.startLocation,
+      H: restOne!.location,
       I: restOneTime?.[0],
       J: restOneTime?.[1],
-      K: (restOneExit!['time'] as string).split(' ')[1],
-      L: destination!['location'] as string,
+      K: restOneExit!.time.split(' ')[1],
+      L: destination!.location,
       M: destinationTime[0],
       N: destinationTime[1],
-      O: (destinationExit!['time'] as string).split(' ')[1],
-      P: restTwo ? (restTwo['location'] as string) : '-',
+      O: destinationExit!.time.split(' ')[1],
+      P: restTwo ? restTwo.location : '-',
       Q: restTwo ? restTwoTime?.[0] : '-',
       R: restTwo ? restTwoTime?.[1] : '-',
-      S: restTwoExit ? (restTwoExit['time'] as string).split(' ')[1] : '-',
-      T: end!['location'] as string,
+      S: restTwoExit ? restTwoExit.time.split(' ')[1] : '-',
+      T: end!.location,
       U: endTime[0],
       V: endTime[1],
     };
