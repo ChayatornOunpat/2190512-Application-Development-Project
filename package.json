@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "predeploy": "expo export:web",
-    "deploy-hosting": "npm run predeploy && firebase deploy --only hosting"
+    "deploy-hosting": "pnpm run predeploy && firebase deploy --only hosting"
   },
   "dependencies": {
     "@expo/webpack-config": "^18.0.1",
