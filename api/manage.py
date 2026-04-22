@@ -4,6 +4,7 @@ import click
 from tortoise import Tortoise
 
 from core.db import TORTOISE_ORM
+from core.migrations import migrate_latest
 from core.security import hash_password
 from models import Plate, User
 
@@ -59,6 +60,12 @@ def reset_db() -> None:
             await _close_db()
 
     _run(_run_inner())
+
+
+@cli.command("migrate")
+@click.option("--fake", is_flag=True, default=False, help="Record migrations without executing SQL.")
+def migrate(fake: bool) -> None:
+    _run(migrate_latest(fake=fake))
 
 
 @cli.command("seed")

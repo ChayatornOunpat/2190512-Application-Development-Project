@@ -8,6 +8,7 @@ from core.security import require_auth
 
 
 bp = Blueprint("templates", __name__, url_prefix="/templates")
+API_DIR = Path(__file__).resolve().parents[1]
 
 
 @bp.get("/<string:name>")
@@ -18,7 +19,11 @@ async def download_template(name: str):
     if not safe or safe != name:
         return {"error": "invalid_name"}, 400
 
-    path = Path(settings.templates_dir) / safe
+    templates_dir = Path(settings.templates_dir)
+    if not templates_dir.is_absolute():
+        templates_dir = API_DIR / templates_dir
+
+    path = templates_dir / safe
     if not path.is_file():
         return {"error": "not_found"}, 404
 

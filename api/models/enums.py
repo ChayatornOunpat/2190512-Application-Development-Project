@@ -1,0 +1,42 @@
+from enum import Enum
+
+
+class CheckFieldEnum(str, Enum):
+    law = "law"
+    tax = "tax"
+    insurance = "insurance"
+    passport = "passport"
+    headlight = "headlight"
+    turnlight = "turnlight"
+    toplight = "toplight"
+    lubeoil = "lubeoil"
+    tankcoolant = "tankcoolant"
+    percipitation = "percipitation"
+    opsname = "opsname"
+    doormirror = "doormirror"
+    tire = "tire"
+    tirehub = "tirehub"
+    tirehub2 = "tirehub2"
+    tirehub3 = "tirehub3"
+    tirehub4 = "tirehub4"
+    spare = "spare"
+    pressure = "pressure"
+    extinguisher = "extinguisher"
+    tiresupport = "tiresupport"
+    cone = "cone"
+    breaklight = "breaklight"
+    reverselight = "reverselight"
+    backturnlight = "backturnlight"
+    structuralintegrity = "structuralintegrity"
+    fastener = "fastener"
+    cover = "cover"
+
+
+class CheckpointSuffixEnum(str, Enum):
+    rest1 = "rest1"
+    rest2 = "rest2"
+    destination = "destination"
+    passRest1 = "passRest1"
+    passRest2 = "passRest2"
+    passDestination = "passDestination"
+    end = "end"

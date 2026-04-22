@@ -6,6 +6,7 @@ TORTOISE_ORM = {
     "apps": {
         "models": {
             "models": ["models"],
+            "migrations": "models.migrations",
             "default_connection": "default",
         },
     },
