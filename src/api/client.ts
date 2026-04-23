@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 type UnauthorizedHandler = () => void | Promise<void>;
+type ForbiddenHandler = () => void | Promise<void>;
 type TokenProvider = () => string | null;
 
 type ResponseType = 'json' | 'arrayBuffer' | 'none';
@@ -28,6 +29,7 @@ export class ApiError extends Error {
 
 let getAccessToken: TokenProvider = () => null;
 let handleUnauthorized: UnauthorizedHandler = () => {};
+let handleForbidden: ForbiddenHandler = () => {};
 
 function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, '');
@@ -109,9 +111,11 @@ async function parseError(response: Response): Promise<ApiError> {
 export function configureApiAuth(options: {
   getAccessToken: TokenProvider;
   onUnauthorized: UnauthorizedHandler;
+  onForbidden?: ForbiddenHandler;
 }): void {
   getAccessToken = options.getAccessToken;
   handleUnauthorized = options.onUnauthorized;
+  handleForbidden = options.onForbidden || (() => {});
 }
 
 export function getApiBaseUrl(): string {
@@ -157,12 +161,14 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     throw new ApiError((error as Error).message || 'Network request failed', 0, error);
   }
 
-  if (response.status === 401 && !options.skipAuthReset) {
-    await handleUnauthorized();
-  }
-
   if (!response.ok) {
-    throw await parseError(response);
+    const error = await parseError(response);
+    if (response.status === 401 && !options.skipAuthReset) {
+      await handleUnauthorized();
+    } else if (response.status === 403) {
+      await handleForbidden();
+    }
+    throw error;
   }
 
   if ((options.responseType || 'json') === 'none') {

@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useFonts } from 'expo-font';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { Authenticate } from './src/screens/Authenticate';
 import { Screen } from './src/screens/Primary';
 import { Driving } from './src/screens/Driving';
 import Admin from './src/screens/Admin';
-import { authState, currentUser, restoreSession, subscribeAuth } from './src/api/auth';
+import { authState, currentUser, restoreSession, subscribeAuth, subscribeForbidden } from './src/api/auth';
 import type { RootStackParamList } from './src/types/navigation';
 
 const Stack = createStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 export default function App() {
   const [, setAuthVersion] = useState(0);
@@ -21,13 +22,26 @@ export default function App() {
   });
 
   useEffect(() => {
-    const unsubscribe = subscribeAuth(() => {
+    const unsubscribeAuth = subscribeAuth(() => {
       setAuthVersion((value) => value + 1);
+    });
+    const unsubscribeForbidden = subscribeForbidden(() => {
+      if (!navigationRef.isReady()) {
+        return;
+      }
+
+      navigationRef.resetRoot({
+        index: 0,
+        routes: [{ name: currentUser.value ? 'Primary' : 'SignIn' }],
+      });
     });
 
     void restoreSession();
 
-    return unsubscribe;
+    return () => {
+      unsubscribeForbidden();
+      unsubscribeAuth();
+    };
   }, []);
 
   if (!authState.ready) {
@@ -44,7 +58,7 @@ export default function App() {
   const signedIn = currentUser.value !== null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <View
         style={{
           position: 'absolute',

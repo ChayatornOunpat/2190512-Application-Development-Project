@@ -13,6 +13,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ExcelJS from 'exceljs';
 
 import { styles } from '../styles';
+import { currentUser } from '../api/auth';
 import { listPlates, replacePlates } from '../api/plates';
 import { getHistoricalSessionCount } from '../api/usage';
 import {
@@ -106,6 +107,7 @@ const MyWebDatePicker = ({ date, setDate }: MyWebDatePickerProps) =>
   });
 
 export default function Admin({ navigation }: Props) {
+  const isAdmin = currentUser.value?.isAdmin ?? false;
   const currentDate = new Date();
   const [date, setDate] = useState(new Date(currentDate.getTime()));
   const [endDate, setEndDate] = useState(new Date(currentDate.getTime()));
@@ -118,12 +120,25 @@ export default function Admin({ navigation }: Props) {
   const [selected, setSelected] = useState(false);
 
   useEffect(() => {
+    if (isAdmin) {
+      return;
+    }
+
+    alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+    navigation.replace('Primary');
+  }, [isAdmin, navigation]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+
     listPlates().then((data) => {
       if (!data.length) return;
       setPlateNums(data);
       setPlateSelect(['ทั้งหมด', ...data]);
     });
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     setFilteredOptions(
@@ -359,6 +374,10 @@ export default function Admin({ navigation }: Props) {
 
   function returnPress() {
     navigation.navigate('Primary');
+  }
+
+  if (!isAdmin) {
+    return null;
   }
 
   return (

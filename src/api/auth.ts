@@ -8,21 +8,20 @@ export type User = {
   isAdmin: boolean;
 };
 
-type SignInResponse = {
-  token: string;
-  uid: string;
-  email: string | null;
-};
-
-type CurrentUserResponse = {
+type UserPayload = {
   uid: string;
   email: string | null;
   is_admin: boolean;
 };
 
+type SignInResponse = UserPayload & { token: string };
+
+type CurrentUserResponse = UserPayload;
+
 const TOKEN_STORAGE_KEY = 'appdev.jwt';
 
 const listeners = new Set<() => void>();
+const forbiddenListeners = new Set<() => void>();
 
 let accessToken: string | null = null;
 
@@ -43,12 +42,18 @@ async function persistToken(token: string | null): Promise<void> {
   await AsyncStorage.setItem(TOKEN_STORAGE_KEY, token);
 }
 
-function mapCurrentUser(response: CurrentUserResponse): User {
+function mapUser(response: UserPayload): User {
   return {
     uid: response.uid,
     email: response.email,
     isAdmin: response.is_admin,
   };
+}
+
+function emitForbidden(): void {
+  for (const listener of forbiddenListeners) {
+    listener();
+  }
 }
 
 async function clearSession(): Promise<void> {
@@ -73,12 +78,22 @@ configureApiAuth({
   onUnauthorized: async () => {
     await clearSession();
   },
+  onForbidden: async () => {
+    emitForbidden();
+  },
 });
 
 export function subscribeAuth(listener: () => void): () => void {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
+  };
+}
+
+export function subscribeForbidden(listener: () => void): () => void {
+  forbiddenListeners.add(listener);
+  return () => {
+    forbiddenListeners.delete(listener);
   };
 }
 
@@ -103,7 +118,7 @@ export async function restoreSession(): Promise<User | null> {
 
   try {
     const response = await apiJson<CurrentUserResponse>('/auth/me');
-    const user = mapCurrentUser(response);
+    const user = mapUser(response);
     currentUser.value = user;
     authState.ready = true;
     emitAuthChange();
@@ -123,24 +138,7 @@ export async function signIn(email: string, password: string): Promise<User> {
     skipAuth: true,
     skipAuthReset: true,
   });
-
-  const provisionalUser: User = {
-    uid: response.uid,
-    email: response.email,
-    isAdmin: false,
-  };
-
-  await applySession(response.token, provisionalUser);
-
-  try {
-    const current = await apiJson<CurrentUserResponse>('/auth/me');
-    const user = mapCurrentUser(current);
-    currentUser.value = user;
-    emitAuthChange();
-    return user;
-  } catch {
-    return provisionalUser;
-  }
+  return applySession(response.token, mapUser(response));
 }
 
 export async function signOut(): Promise<void> {

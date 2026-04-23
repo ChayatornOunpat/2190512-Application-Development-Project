@@ -17,7 +17,7 @@ import { currentUser, signOut } from '../api/auth';
 import { listPlates } from '../api/plates';
 import { watchSessionField, startSession } from '../api/sessions';
 import { getPlateLockHolderUid, claimPlateLock } from '../api/plateLocks';
-import { getHistoricalSessionCount } from '../api/usage';
+import { getNextSessionCount } from '../api/usage';
 import { uploadSessionBlob } from '../api/sessionBlobs';
 import type { SessionBlob } from '../types/domain';
 import type { RootStackParamList } from '../types/navigation';
@@ -27,6 +27,7 @@ const mapsKey = '';
 type Props = StackScreenProps<RootStackParamList, 'Primary'>;
 
 export const Screen = ({ navigation }: Props) => {
+  const isAdmin = currentUser.value?.isAdmin ?? false;
   const [law, setLaw] = useState(false);
   const [tax, setTax] = useState(false);
   const [insurance, setInsurance] = useState(false);
@@ -153,6 +154,10 @@ export const Screen = ({ navigation }: Props) => {
   }, [query, plateNums]);
 
   const handleAdminPress = async () => {
+    if (!currentUser.value?.isAdmin) {
+      alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+      return;
+    }
     navigation.navigate('Admin');
   };
 
@@ -211,7 +216,7 @@ export const Screen = ({ navigation }: Props) => {
       }
 
       await startSession(user.uid, plate);
-      const count = (await getHistoricalSessionCount(plate, dateStr)) + 1;
+      const count = await getNextSessionCount(plate, dateStr);
       await claimPlateLock(plate, user.uid, dateStr, count);
 
       const location = await getLocation();
@@ -402,11 +407,13 @@ export const Screen = ({ navigation }: Props) => {
             <Text style={styles.btnTxt}>บันทึก</Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.buttonRest} onPress={handleAdminPress}>
-          <View style={styles.btnTxtView}>
-            <Text style={styles.btnTxt}>ดาวน์โหลดข้อมูล</Text>
-          </View>
-        </TouchableOpacity>
+        {isAdmin && (
+          <TouchableOpacity style={styles.buttonRest} onPress={handleAdminPress}>
+            <View style={styles.btnTxtView}>
+              <Text style={styles.btnTxt}>ดาวน์โหลดข้อมูล</Text>
+            </View>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.buttonRest} onPress={handleSignOutPress}>
           <View style={styles.btnTxtView}>
             <Text style={styles.btnTxt}>ออกจากระบบ</Text>

@@ -32,6 +32,16 @@ export async function getHistoricalSessionCount(
   return response.count;
 }
 
+export async function getNextSessionCount(
+  plate: string,
+  date: string,
+): Promise<number> {
+  const response = await apiJson<UsageCountResponse>(
+    `/usage/next/${encodeURIComponent(plate)}/count?date=${encodeURIComponent(date)}`,
+  );
+  return response.count;
+}
+
 export async function recordHistoricalSession(
   plate: string,
   date: string,

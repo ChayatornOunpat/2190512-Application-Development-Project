@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from quart import Blueprint
 from quart_schema import tag, validate_querystring, validate_request, validate_response
 
-from core.security import require_auth
+from core.security import require_admin, require_auth
 from models import PlateDailyUsage, PlateLock
 
 from .schemas import (
@@ -43,10 +43,20 @@ async def current_date(plate: str):
 @tag(["usage"])
 @validate_querystring(HistoricalCountQuery)
 @validate_response(UsageCountResponse, 200)
-@require_auth
+@require_admin
 async def historical_count(plate: str, query_args: HistoricalCountQuery):
     row = await PlateDailyUsage.get_or_none(plate_id=plate, date=query_args.date)
     return UsageCountResponse(count=0 if row is None else row.count)
+
+
+@bp.get("/next/<string:plate>/count")
+@tag(["usage"])
+@validate_querystring(HistoricalCountQuery)
+@validate_response(UsageCountResponse, 200)
+@require_auth
+async def next_session_count(plate: str, query_args: HistoricalCountQuery):
+    row = await PlateDailyUsage.get_or_none(plate_id=plate, date=query_args.date)
+    return UsageCountResponse(count=(0 if row is None else row.count) + 1)
 
 
 @bp.post("/historical/record")

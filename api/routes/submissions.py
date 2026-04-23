@@ -2,7 +2,7 @@ from quart import Blueprint, g
 from quart_schema import tag, validate_request, validate_response
 from tortoise.transactions import in_transaction
 
-from core.security import require_auth
+from core.security import require_admin, require_auth
 from models import Plate, SessionCheck, SessionCheckpoint, SessionSubmission
 
 from .schemas import (
@@ -62,7 +62,7 @@ async def upload_submission(data: SessionSubmissionPayload):
 @bp.get("/<string:plate>/<string:date>/<int:count>")
 @tag(["submissions"])
 @validate_response(SubmissionEnvelope, 200)
-@require_auth
+@require_admin
 async def get_submission(plate: str, date: str, count: int):
     submission = await SessionSubmission.get_or_none(plate_id=plate, date=date, count=count)
     if submission is None:
@@ -114,7 +114,7 @@ async def upload_checkpoint(plate: str, date: str, count: int, suffix: str, data
 @bp.get("/<string:plate>/<string:date>/<int:count>/checkpoints/<string:suffix>")
 @tag(["submissions"])
 @validate_response(CheckpointEnvelope, 200)
-@require_auth
+@require_admin
 async def get_checkpoint(plate: str, date: str, count: int, suffix: str):
     submission = await SessionSubmission.get_or_none(plate_id=plate, date=date, count=count)
     if submission is None:

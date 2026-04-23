@@ -44,6 +44,7 @@ class SignInResponse(BaseModel):
     token: str
     uid: UUID
     email: EmailStr
+    is_admin: bool
 
 
 class CurrentUserResponse(BaseModel):

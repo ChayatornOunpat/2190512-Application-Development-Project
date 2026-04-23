@@ -4,7 +4,7 @@ from quart import Blueprint, send_file
 from quart_schema import hide
 
 from core.config import settings
-from core.security import require_auth
+from core.security import require_admin
 
 
 bp = Blueprint("templates", __name__, url_prefix="/templates")
@@ -13,7 +13,7 @@ API_DIR = Path(__file__).resolve().parents[1]
 
 @bp.get("/<string:name>")
 @hide
-@require_auth
+@require_admin
 async def download_template(name: str):
     safe = Path(name).name
     if not safe or safe != name:

@@ -28,7 +28,7 @@ async def sign_in(data: SignInRequest):
         return ErrorResponse(error="invalid_credentials"), 401
 
     token = issue_token(user.id)
-    return SignInResponse(token=token, uid=user.id, email=user.email)
+    return SignInResponse(token=token, uid=user.id, email=user.email, is_admin=user.is_admin)
 
 
 @bp.post("/sign-out")
