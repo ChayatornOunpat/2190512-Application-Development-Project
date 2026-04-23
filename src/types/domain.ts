@@ -25,15 +25,38 @@ export type PlateState = {
   usage: number;
 };
 
-export type CheckField =
-  | 'law' | 'tax' | 'insurance' | 'passport'
-  | 'headlight' | 'turnlight' | 'toplight'
-  | 'lubeoil' | 'tankcoolant' | 'percipitation'
-  | 'opsname' | 'doormirror'
-  | 'tire' | 'tirehub' | 'tirehub2' | 'tirehub3' | 'tirehub4'
-  | 'spare' | 'pressure' | 'extinguisher' | 'tiresupport' | 'cone'
-  | 'breaklight' | 'reverselight' | 'backturnlight'
-  | 'structuralintegrity' | 'fastener' | 'cover';
+export const CHECK_FIELDS = [
+  'law',
+  'tax',
+  'insurance',
+  'passport',
+  'headlight',
+  'turnlight',
+  'toplight',
+  'lubeoil',
+  'tankcoolant',
+  'percipitation',
+  'opsname',
+  'doormirror',
+  'tire',
+  'tirehub',
+  'tirehub2',
+  'tirehub3',
+  'tirehub4',
+  'spare',
+  'pressure',
+  'extinguisher',
+  'tiresupport',
+  'cone',
+  'breaklight',
+  'reverselight',
+  'backturnlight',
+  'structuralintegrity',
+  'fastener',
+  'cover',
+] as const;
+
+export type CheckField = (typeof CHECK_FIELDS)[number];
 
 export type SessionBlob =
   & Record<CheckField, boolean>

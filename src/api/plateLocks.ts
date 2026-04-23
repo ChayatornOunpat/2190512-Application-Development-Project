@@ -1,19 +1,34 @@
-export function getPlateLockHolderUid(plate: string): Promise<string | null> {
-  console.warn('[api stub] getPlateLockHolderUid', plate);
-  return Promise.resolve(null);
+import { apiJson, apiVoid } from './client';
+
+type PlateLockResponse = {
+  holder_uid: string | null;
+  ref_date: string | null;
+  usage: number | null;
+};
+
+export async function getPlateLockHolderUid(plate: string): Promise<string | null> {
+  const response = await apiJson<PlateLockResponse>(`/plate-locks/${encodeURIComponent(plate)}`);
+  return response.holder_uid;
 }
 
-export function claimPlateLock(
+export async function claimPlateLock(
   plate: string,
-  uid: string,
+  _uid: string,
   refDate: string,
   usage: number,
 ): Promise<void> {
-  console.warn('[api stub] claimPlateLock', plate, uid, refDate, usage);
-  return Promise.resolve();
+  await apiVoid('/plate-locks/claim', {
+    method: 'POST',
+    body: {
+      plate,
+      ref_date: refDate,
+      usage,
+    },
+  });
 }
 
-export function releasePlateLock(plate: string): Promise<void> {
-  console.warn('[api stub] releasePlateLock', plate);
-  return Promise.resolve();
+export async function releasePlateLock(plate: string): Promise<void> {
+  await apiVoid(`/plate-locks/${encodeURIComponent(plate)}`, {
+    method: 'DELETE',
+  });
 }

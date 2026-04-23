@@ -73,17 +73,23 @@ def seed() -> None:
     async def _run_inner() -> None:
         await _init_db()
         try:
-            demo_email = "admin@example.com"
-            admin = await User.get_or_none(email=demo_email)
-            if admin is None:
-                admin = await User.create(
-                    email=demo_email,
-                    password_hash=hash_password("admin1234"),
-                    is_admin=True,
-                )
-                click.echo(f"created admin {admin.id} ({demo_email} / admin1234)")
-            else:
-                click.echo(f"admin already exists: {admin.id}")
+            seed_users = (
+                ("admin@example.com", "admin1234", True),
+                ("driver@example.com", "driver1234", False),
+            )
+            for email, password, is_admin in seed_users:
+                user = await User.get_or_none(email=email)
+                if user is None:
+                    user = await User.create(
+                        email=email,
+                        password_hash=hash_password(password),
+                        is_admin=is_admin,
+                    )
+                    role = "admin" if is_admin else "driver"
+                    click.echo(f"created {role} {user.id} ({email} / {password})")
+                else:
+                    role = "admin" if user.is_admin else "driver"
+                    click.echo(f"{role} already exists: {user.id}")
 
             demo_plates = ["1กก-1111", "2ขข-2222", "3คค-3333"]
             created = 0

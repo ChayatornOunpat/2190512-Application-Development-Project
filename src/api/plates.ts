@@ -1,9 +1,17 @@
-export function listPlates(): Promise<string[]> {
-  console.warn('[api stub] listPlates');
-  return Promise.resolve([]);
+import { apiJson, apiVoid } from './client';
+
+type PlatesResponse = {
+  plates: string[];
+};
+
+export async function listPlates(): Promise<string[]> {
+  const response = await apiJson<PlatesResponse>('/plates');
+  return response.plates;
 }
 
-export function replacePlates(plates: string[]): Promise<void> {
-  console.warn('[api stub] replacePlates', plates);
-  return Promise.resolve();
+export async function replacePlates(plates: string[]): Promise<void> {
+  await apiVoid('/plates', {
+    method: 'PUT',
+    body: { plates },
+  });
 }

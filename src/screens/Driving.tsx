@@ -62,7 +62,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'working', (value) => {
+    return watchSessionField(user.uid, 'working', (value) => {
       if (!value) {
         navigation.navigate('Primary');
       }
@@ -72,7 +72,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'rest1', (value) => {
+    return watchSessionField(user.uid, 'rest1', (value) => {
       setRest1(!!value);
     });
   }, []);
@@ -80,7 +80,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'rest2', (value) => {
+    return watchSessionField(user.uid, 'rest2', (value) => {
       setRest2(!!value);
     });
   }, []);
@@ -88,7 +88,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'destination', (value) => {
+    return watchSessionField(user.uid, 'destination', (value) => {
       setDestination(!!value);
     });
   }, []);
@@ -96,7 +96,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'passRest1', (value) => {
+    return watchSessionField(user.uid, 'passRest1', (value) => {
       setPassRest1(!!value);
     });
   }, []);
@@ -104,7 +104,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'passRest2', (value) => {
+    return watchSessionField(user.uid, 'passRest2', (value) => {
       setPassRest2(!!value);
     });
   }, []);
@@ -112,7 +112,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'passDestination', (value) => {
+    return watchSessionField(user.uid, 'passDestination', (value) => {
       setPassDestination(!!value);
     });
   }, []);
@@ -120,7 +120,7 @@ export const Driving = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'plate', (value) => {
+    return watchSessionField(user.uid, 'plate', (value) => {
       setPlate(value ?? '');
     });
   }, []);
@@ -159,27 +159,25 @@ export const Driving = ({ navigation }: Props) => {
     field: CheckpointField;
     includeLocation: boolean;
   }): Promise<void> {
-    const { dateTime } = buildDateTime();
-    const location = opts.includeLocation ? await getLocation() : undefined;
-    const blob: CheckpointBlob = opts.includeLocation
-      ? { time: dateTime, location }
-      : { time: dateTime };
-
-    const count = await getCurrentSessionIndex(plate);
-    const date = await getCurrentSessionDate(plate);
-    if (date === null) return;
     try {
+      const { dateTime } = buildDateTime();
+      const location = opts.includeLocation ? await getLocation() : undefined;
+      const blob: CheckpointBlob = opts.includeLocation
+        ? { time: dateTime, location }
+        : { time: dateTime };
+
+      const count = await getCurrentSessionIndex(plate);
+      const date = await getCurrentSessionDate(plate);
+      if (date === null) return;
+
       await uploadCheckpointBlob(plate, date, count, opts.suffix, blob);
+      const user = currentUser.value;
+      if (!user) return;
+      await markCheckpointReached(user.uid, opts.field);
       alert('อัปโหลดข้อมูลสำเร็จ');
     } catch (error) {
       alert('เกิดปัญหาในการอัปโหลด: ' + (error as Error).message);
     }
-
-    const user = currentUser.value;
-    if (!user) return;
-    markCheckpointReached(user.uid, opts.field)
-      .then(() => console.log('success'))
-      .catch((error: Error) => console.log(error));
   }
 
   const handleDestination = () =>
@@ -196,31 +194,25 @@ export const Driving = ({ navigation }: Props) => {
     logCheckpoint({ suffix: 'passRest2', field: 'passRest2', includeLocation: false });
 
   async function handleEnd() {
-    const { dateTime } = buildDateTime();
-    const location = await getLocation();
-    const blob: CheckpointBlob = { time: dateTime, location };
-
-    const count = await getCurrentSessionIndex(plate);
-    const date = await getCurrentSessionDate(plate);
-    if (date === null) return;
-
     try {
+      const { dateTime } = buildDateTime();
+      const location = await getLocation();
+      const blob: CheckpointBlob = { time: dateTime, location };
+
+      const count = await getCurrentSessionIndex(plate);
+      const date = await getCurrentSessionDate(plate);
+      if (date === null) return;
+
       await uploadCheckpointBlob(plate, date, count, 'end', blob);
+      await recordHistoricalSession(plate, date, count);
+
+      const user = currentUser.value;
+      if (!user) return;
+      await endSession(user.uid);
+      await releasePlateLock(plate);
       alert('อัปโหลดข้อมูลสำเร็จ');
     } catch (error) {
       alert('เกิดปัญหาในการอัปโหลด: ' + (error as Error).message);
-    }
-
-    await recordHistoricalSession(plate, date, count);
-
-    const user = currentUser.value;
-    if (!user) return;
-    try {
-      await endSession(user.uid);
-      await releasePlateLock(plate);
-      console.log('success');
-    } catch (error) {
-      console.log(error);
     }
   }
 

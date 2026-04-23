@@ -131,7 +131,7 @@ export const Screen = ({ navigation }: Props) => {
   useEffect(() => {
     const user = currentUser.value;
     if (!user) return;
-    watchSessionField(user.uid, 'working', (value) => {
+    return watchSessionField(user.uid, 'working', (value) => {
       if (value) {
         navigation.navigate('Driving');
       }
@@ -203,20 +203,21 @@ export const Screen = ({ navigation }: Props) => {
     const timeStr = utcDate.toISOString().slice(11, 19);
     const dateTime = dateStr + ' ' + timeStr;
 
-    const holder = await getPlateLockHolderUid(plate);
-    if (holder !== null) {
-      alert('this car is currently being driven by someone else');
-      return;
-    }
+    try {
+      const holder = await getPlateLockHolderUid(plate);
+      if (holder !== null) {
+        alert('this car is currently being driven by someone else');
+        return;
+      }
 
-    await startSession(user.uid, plate);
-    const count = (await getHistoricalSessionCount(plate, dateStr)) + 1;
-    await claimPlateLock(plate, user.uid, dateStr, count);
+      await startSession(user.uid, plate);
+      const count = (await getHistoricalSessionCount(plate, dateStr)) + 1;
+      await claimPlateLock(plate, user.uid, dateStr, count);
 
-    const location = await getLocation();
-    if (location === undefined) return;
+      const location = await getLocation();
+      if (location === undefined) return;
 
-    const blob: SessionBlob = {
+      const blob: SessionBlob = {
       law,
       tax,
       insurance,
@@ -308,9 +309,8 @@ export const Screen = ({ navigation }: Props) => {
       date: dateTime,
       name,
       startLocation: location,
-    };
+      };
 
-    try {
       await uploadSessionBlob(plate, dateStr, count, blob);
       alert('อัปโหลดข้อมูลสำเร็จ');
     } catch (error) {

@@ -26,7 +26,7 @@ def create_app() -> Quart:
 
     @app.before_serving
     async def _startup() -> None:
-        await Tortoise.init(config=TORTOISE_ORM)
+        await Tortoise.init(config=TORTOISE_ORM, _enable_global_fallback=True)
 
     @app.after_serving
     async def _shutdown() -> None:

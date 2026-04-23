@@ -1,26 +1,44 @@
-export function getCurrentSessionIndex(plate: string): Promise<number> {
-  console.warn('[api stub] getCurrentSessionIndex', plate);
-  return Promise.resolve(0);
+import { apiJson, apiVoid } from './client';
+
+type UsageCountResponse = {
+  count: number;
+};
+
+type UsageDateResponse = {
+  date: string | null;
+};
+
+export async function getCurrentSessionIndex(plate: string): Promise<number> {
+  const response = await apiJson<UsageCountResponse>(
+    `/usage/current/${encodeURIComponent(plate)}/index`,
+  );
+  return response.count;
 }
 
-export function getCurrentSessionDate(plate: string): Promise<string | null> {
-  console.warn('[api stub] getCurrentSessionDate', plate);
-  return Promise.resolve(null);
+export async function getCurrentSessionDate(plate: string): Promise<string | null> {
+  const response = await apiJson<UsageDateResponse>(
+    `/usage/current/${encodeURIComponent(plate)}/date`,
+  );
+  return response.date;
 }
 
-export function getHistoricalSessionCount(
+export async function getHistoricalSessionCount(
   plate: string,
   date: string,
 ): Promise<number> {
-  console.warn('[api stub] getHistoricalSessionCount', plate, date);
-  return Promise.resolve(0);
+  const response = await apiJson<UsageCountResponse>(
+    `/usage/historical/${encodeURIComponent(plate)}/count?date=${encodeURIComponent(date)}`,
+  );
+  return response.count;
 }
 
-export function recordHistoricalSession(
+export async function recordHistoricalSession(
   plate: string,
   date: string,
   count: number,
 ): Promise<void> {
-  console.warn('[api stub] recordHistoricalSession', plate, date, count);
-  return Promise.resolve();
+  await apiVoid('/usage/historical/record', {
+    method: 'POST',
+    body: { plate, date, count },
+  });
 }
